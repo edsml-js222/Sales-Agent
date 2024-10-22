@@ -24,7 +24,7 @@ from fastapi.responses import JSONResponse
 # 获取项目文件夹目录 & 根目录
 current_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_path)
-root_path = os.path.abspath(os.path.join(current_dir, os.pardir))
+#root_path = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.append(f"{current_dir}/utils")
 
 
@@ -48,7 +48,7 @@ user_dialogue_db = db["user_dialogue_db"]
 
 
 # Create a logger for the application
-app_logger = setup_logger('app_logger', f"{root_path}/app.log")
+app_logger = setup_logger('app_logger', f"{current_dir}/logs/app.log")
 
 def get_dialogue_data(data):
     try:
