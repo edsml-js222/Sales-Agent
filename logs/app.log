@@ -1,0 +1,4 @@
+2024-10-22 11:29:59,141 - app_logger - ERROR - Error in sales_template_config: 'NoneType' object has no attribute 'sort'
+2024-10-22 11:31:42,700 - app_logger - ERROR - Error in sales_template_config: 'dict' object has no attribute 'sort'
+2024-10-22 11:41:00,260 - app_logger - ERROR - Error in model_reply: 'FastAPI' object has no attribute 'test_client'
+2024-10-22 11:55:30,513 - app_logger - ERROR - Error in model_reply: 'module' object is not callable
