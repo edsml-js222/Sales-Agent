@@ -3,3 +3,8 @@
 
 # Python
 __pycache__
+/utils/__pycache__
+
+# jupyter notebook
+.ipynb_checkpoints/
+logs/.ipynb_checkpoints/
