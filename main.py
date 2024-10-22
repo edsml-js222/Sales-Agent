@@ -147,6 +147,14 @@ async def model_reply(request:Request):
         
         # 实现模型回复的逻辑
         model_reply, input_tokens, output_tokens = get_sales_reply(industry_id, template_content, user_input, history, model_name="gpt-4o-mini", temperature=0.1)
+
+        # 将当前对话存入数据库
+        user_dialogue_db.insert_one({
+            "chat_id": data.get("chat_id"),
+            "user_input": user_input,
+            "model_reply": model_reply,
+            "insert_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        })
         return {"status": 200, "msg": "Model reply success", "model_reply": model_reply, "input_tokens": input_tokens, "output_tokens": output_tokens}
 
     except Exception as e:
