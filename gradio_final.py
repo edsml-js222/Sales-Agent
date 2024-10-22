@@ -41,6 +41,17 @@ sales_template_db = db["sales_template_db"]
 industry_ids = sales_template_db.distinct('industry_id')
 template_ids = sales_template_db.distinct('template_id')
 
+industry_id_saved = ''
+template_id_saved = ''
+
+def show_industry_id(industry_id):
+    global industry_id_saved
+    industry_id_saved = industry_id
+
+def show_template_id(template_id):
+    global template_id_saved
+    template_id_saved = template_id
+
 def get_template_content(industry_id, template_id):
     # 根据industry_id和template_id获取template_content
     result = db.collection.find_one({'industry_id': industry_id, 'template_id': template_id})
@@ -114,7 +125,7 @@ with gr.Blocks() as demo1:
     with gr.Tab("📥话术配置"):
         industry_dropdown = gr.Dropdown(choices=industry_ids, label="选择行业ID")
         template_dropdown = gr.Dropdown(choices=template_ids, label="选择模板ID")
-        
+
         template_content_display = gr.Textbox(label="模板内容", interactive=False)
         
         industry_input = gr.Textbox(label="行业ID输入")
@@ -124,8 +135,12 @@ with gr.Blocks() as demo1:
         confirm_button = gr.Button("确认")
 
         # 绑定下拉菜单的变化事件
-        industry_dropdown.change(get_template_content, [industry_dropdown, template_dropdown], template_content_display)
-        template_dropdown.change(get_template_content, [industry_dropdown, template_dropdown], template_content_display)
+        industry_dropdown.change(show_industry_id, industry_dropdown)
+        template_dropdown.change(show_template_id, template_dropdown).then(
+            lambda: get_template_content(industry_id_saved, template_id_saved),
+            None,
+            template_content_display
+        )
         
         # 绑定确认按钮的点击事件
         confirm_button.click(update_or_create_template, [industry_input, template_input, content_input], None)
