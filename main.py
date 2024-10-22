@@ -30,7 +30,7 @@ sys.path.append(f"{current_dir}/utils")
 
 from utils.logger_config import setup_logger
 from utils.connect_mongo import _init_mongo_connect
-from algorithm.sales_reply import get_sales_reply
+from algorithm.sales_reply.get_sales_reply import get_sales_reply
 # import utils.MilvusDB as mdb
 
 
