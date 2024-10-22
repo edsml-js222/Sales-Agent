@@ -80,8 +80,8 @@ async def sales_template_config(request:Request):
             return {"status": 400, "msg": "Missing required information"}
 
         template_info = sales_template_db.find_one(
-            {"industry_id": industry_id, "template_id": template_id}
-        ).sort('_id', -1)
+            {"industry_id": industry_id, "template_id": template_id}, sort=[('_id', -1)]
+        )
 
         if not template_info:
             return {"status": 404, "msg": "Template not found"}
