@@ -50,11 +50,12 @@ user_dialogue_db = db["user_dialogue_db"]
 # Create a logger for the application
 app_logger = setup_logger('app_logger', f"{current_dir}/logs/app.log")
 
+# 获取历史对话数据
 def get_dialogue_data(data):
     try:
         history_dialogue = []
         if user_dialogue_db.count_documents({"chat_id": data.get("chat_id")}):
-            for dialogue_order, dialogue in enumerate(user_dialogue_db.find({"chat_id": data.get("chat_id")}).sort('insert_time', 1)):
+            for dialogue_order, dialogue in enumerate(user_dialogue_db.find({"chat_id": data.get("chat_id")}, sort=[('insert_time', 1)])):
                 history_dialogue.append(
                     {f"The number {dialogue_order} dialogue content": [{"role": "user", "content":dialogue.get("user_input")}, {"role": "assistant", "content": dialogue.get("model_reply")}]}
                 )
@@ -67,32 +68,6 @@ def get_dialogue_data(data):
 @app.get("/test")
 async def test():
     return {"status": 200, "msg": "hello world"}
-
-# 话术选择模块
-@app.post("/sales_template_config")
-async def sales_template_config(request:Request):
-    try:
-        data = await request.json()
-        industry_id = data.get("industry_id")
-        template_id = data.get("template_id")
-
-        if not industry_id or not template_id:
-            return {"status": 400, "msg": "Missing required information"}
-
-        template_info = sales_template_db.find_one(
-            {"industry_id": industry_id, "template_id": template_id}, sort=[('_id', -1)]
-        )
-
-        if not template_info:
-            return {"status": 404, "msg": "Template not found"}
-
-        template_content = template_info.get("template_content")
-
-        return {"status": 200, "msg": "success", "data": template_content}
-    
-    except Exception as e:
-        app_logger.error(f"Error in sales_template_config: {str(e)}")
-        return {"status": 500, "msg": "Internal server error"}
 
 # 话术存储模块
 @app.post("/sales_template_store")
@@ -130,17 +105,6 @@ async def model_reply(request:Request):
         if not industry_id or not template_id:
             return {"status":400, "msg": "Missing required information"}
 
-        # # 调用话术选择模块的api
-        # response = await app.test_client().post(
-        #     "/sales_template_config",
-        #     json={"industry_id": industry_id, "template_id": template_id}
-        # )
-
-        # if response.status_code != 200:
-        #     return {"status": response.status_code, "msg": response.json().get("msg")}
-        
-        # response_data = await response.json()
-        # template_content = response_data.get("data")
         template_info = sales_template_db.find_one(
             {"industry_id": industry_id, "template_id": template_id}, sort=[('_id', -1)]
         )
