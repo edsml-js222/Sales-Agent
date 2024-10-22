@@ -130,17 +130,25 @@ async def model_reply(request:Request):
         if not industry_id or not template_id:
             return {"status":400, "msg": "Missing required information"}
 
-        # 调用话术选择模块的api
-        response = await app.test_client().post(
-            "/sales_template_config",
-            json={"industry_id": industry_id, "template_id": template_id}
+        # # 调用话术选择模块的api
+        # response = await app.test_client().post(
+        #     "/sales_template_config",
+        #     json={"industry_id": industry_id, "template_id": template_id}
+        # )
+
+        # if response.status_code != 200:
+        #     return {"status": response.status_code, "msg": response.json().get("msg")}
+        
+        # response_data = await response.json()
+        # template_content = response_data.get("data")
+        template_info = sales_template_db.find_one(
+            {"industry_id": industry_id, "template_id": template_id}, sort=[('_id', -1)]
         )
 
-        if response.status_code != 200:
-            return {"status": response.status_code, "msg": response.json().get("msg")}
-        
-        response_data = await response.json()
-        template_content = response_data.get("data")
+        if not template_info:
+            return {"status": 404, "msg": "Template not found"}
+
+        template_content = template_info.get("template_content")        
  
         if not template_content:
             return {"status": 404, "msg": "Template content not found"}
