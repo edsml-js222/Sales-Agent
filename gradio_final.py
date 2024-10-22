@@ -4,7 +4,13 @@ import requests
 import random
 import json
 import time
-import re
+import os
+import setproctitle
+
+# 获取当前进程pid
+pid = str(os.getpid())
+project_name = "smart_salesman_gradio"
+setproctitle.setproctitle(project_name)
 
 model_options = [
     "gpt-4o-mini",
@@ -124,4 +130,4 @@ with gr.Blocks() as demo1:
         # 绑定确认按钮的点击事件
         confirm_button.click(update_or_create_template, [industry_input, template_input, content_input], None)
 
-demo1.launch(server_name="0.0.0.0", server_port=7870)
+demo1.launch(server_name="0.0.0.0", server_port=7880)
