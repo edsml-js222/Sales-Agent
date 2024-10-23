@@ -2,6 +2,7 @@ import gradio as gr
 from utils.connect_mongo import _init_mongo_connect
 import requests
 import random
+import string
 import json
 import time
 import os
@@ -12,11 +13,11 @@ pid = str(os.getpid())
 project_name = "smart_salesman_gradio"
 setproctitle.setproctitle(project_name)
 
-model_options = [
-    "gpt-4o-mini",
-    "gpt-4o",
-]
-model_using = ''
+# model_options = [
+#     "gpt-4o-mini",
+#     "gpt-4o",
+# ]
+# model_using = ''
 
 init_mess_store = [
     "您好，我是Health-OK公司的专属销售助手小H！我们专注于提供优质医疗设备，很高兴能为您提供帮助，让我们一起找到最合适的解决方案吧！😊", 
@@ -43,6 +44,22 @@ template_ids = sales_template_db.distinct('template_id')
 
 industry_id_saved = ''
 template_id_saved = ''
+chat_id_saved = ''
+
+def generate_chat_id():
+    # 生成一个6位随机字符串
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+
+# 绑定按钮点击事件
+def start_chat():
+    global chat_id_saved
+    chat_id_saved = generate_chat_id()
+    return gr.update(visible=True) # 显示对话框
+
+
+# def model_select(model_name):
+#     global model_using
+#     model_using = model_name
 
 def show_industry_id(industry_id):
     global industry_id_saved
@@ -55,7 +72,7 @@ def show_template_id(template_id):
 def get_template_content(industry_id, template_id):
     # 根据industry_id和template_id获取template_content
     result = sales_template_db.find_one({'industry_id': industry_id, 'template_id': template_id})
-    return result['template_content'] if result else "未找到对应的模板内容"
+    return result['template_content'] if result else "没有已经存入的模版内容哦"
 
 def update_or_create_template(industry_id, template_id, template_content):
     # 检查是否存在对应的记录
@@ -77,54 +94,30 @@ def update_or_create_template(industry_id, template_id, template_content):
         return "新模板已创建！"
 
 with gr.Blocks() as demo1:
-    def model_select(model_name):
-        global model_using
-        model_using = model_name
-        
     gr.Markdown("""
                 ## 智能销售助手demo:\n
                 🧑‍💼**AI销售助手**: 引导客户的交互，留下留资\n
                 😊**行业销售话术配置**: 配置行业的销售话术
                 """)
-    dropdown = gr.Dropdown(choices=model_options, label="选择你想要使用的大模型吧🤖")
-    dropdown.change(model_select, dropdown)
+    # dropdown = gr.Dropdown(choices=model_options, label="选择你想要使用的大模型吧🤖", allow_custom_value=True, value='')
+    # dropdown.change(model_select, dropdown)
     
     with gr.Tab("🧑‍💼AI销售助手"):
         initial_message = [[None, init_mess]]
         chatbot = gr.Chatbot(value=initial_message)
-        msg = gr.Textbox(placeholder="👉我能帮您什么呀？在这儿告诉我吧", label='')
-        with gr.Row():
-            clear = gr.Button("🗑️清除历史对话")
-            #save = gr.Button("📁存入数据库吧")
-        
-        def user(user_message, history):
-            return "", history + [[user_message, None]]
 
-        def bot(history):
-            # 目标URL
-            url = 'http://121.201.110.83:'
-            user_message = history[-1][0]
-            # JSON数据
-            chat_id = 0
-            pre_data = {"chat_id": chat_id,
-                        "model_using": model_using,
-                        "question": user_message}
-            json_data = json.dumps(pre_data)
+        # 开始对话按钮
+        start_button = gr.Button("🚀开始对话")
 
-            # 发送POST请求，并指定headers中的Content-Type为application/json
-            response = requests.post(url, data=json_data)
-            response_text = json.loads(response.json())['text']
-            print(f"response: {response_text}")
-            history[-1][1] = response_text
-            time.sleep(0.05)
-            yield history
+        # 用户输入框
+        msg = gr.Textbox(placeholder="👉想了解什么项目呀？在这儿告诉我吧", label='', visible=False)
 
-        msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-            bot, chatbot, chatbot)
-        clear.click(lambda: None, None, chatbot, queue=False)
+        start_button.click(start_chat, None, msg, queue=False)
+
+
     with gr.Tab("📥话术配置"):
         industry_dropdown = gr.Dropdown(choices=industry_ids, label="选择行业ID", allow_custom_value=True, value='')
-        template_dropdown = gr.Dropdown(choices=template_ids, label="选择模板ID", value='')
+        template_dropdown = gr.Dropdown(choices=template_ids, label="选择模板ID", allow_custom_value=True, value='')
 
         template_content_display = gr.Textbox(label="模板内容", interactive=False)
         

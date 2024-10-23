@@ -70,8 +70,8 @@ async def test():
     return {"status": 200, "msg": "hello world"}
 
 # 话术存储模块
-@app.post("/sales_template_store")
-async def sales_template_store(request:Request):
+@app.post("/sales_template_save")
+async def sales_template_save(request:Request):
     try:
         data = await request.json()
         industry_id = data.get("industry_id")
@@ -80,16 +80,25 @@ async def sales_template_store(request:Request):
 
         if not industry_id or not template_id or not template_content:
             return {"status": 400, "msg": "Missing required information"}
-
-        sales_template_db.insert_one({
+        # 检查是否存在对应的记录
+        existing_record = sales_template_db.find_one({'industry_id': industry_id, 'template_id': template_id})
+        if existing_record:
+            # 更新记录
+            sales_template_db.update_one(
+                {'industry_id': industry_id, 'template_id': template_id},
+                {'$set': {'template_content': template_content}}
+            )
+        else:
+            # 创建新记录
+            sales_template_db.insert_one({
             "industry_id": industry_id, 
             "template_id": template_id, 
-            "template_content": template_content
-        })
+                "template_content": template_content
+            })
         return {"status": 200, "msg": "success"}
     
     except Exception as e:
-        app_logger.error(f"Error in sales_template_store: {str(e)}")
+        app_logger.error(f"Error in sales_template_save: {str(e)}")
         return {"status": 500, "msg": "Internal server error"}
 
 # 模型回复模块
