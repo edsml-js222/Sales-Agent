@@ -70,7 +70,7 @@ def user_input_handler(user_input):
     global industry_id_saved
     global template_id_saved
     model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
-    return [[user_input, model_reply]]
+    return [[user_input, model_reply], ""]
 
 # 获取模型回复
 def get_model_reply(industry_id, template_id, user_input, chat_id):
@@ -153,7 +153,7 @@ with gr.Blocks() as demo1:
 
         start_button.click(start_chat, None, [msg, end_button, start_button], queue=False)
         end_button.click(end_chat, None, [msg, end_button, start_button], queue=False)
-        msg.submit(user_input_handler, msg, chatbot, queue=False)
+        msg.submit(user_input_handler, msg, [chatbot, msg], queue=False)
 
     with gr.Tab("📥话术配置"):
         industry_dropdown = gr.Dropdown(choices=industry_ids, label="选择行业ID", allow_custom_value=True, value='')
