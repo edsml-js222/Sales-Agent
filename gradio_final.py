@@ -48,7 +48,7 @@ chat_id_saved = ''
 
 def generate_chat_id():
     # 生成一个6位随机字符串
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=6))
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
 # 绑定按钮点击事件
 def start_chat():
@@ -56,6 +56,7 @@ def start_chat():
     chat_id_saved = generate_chat_id()
     print(f"当前对话chat_id: {chat_id_saved}")
     return [gr.update(visible=True, interactive=True), gr.update(visible=True), gr.update(visible=False)] # 显示对话框
+
 # 绑定结束对话按钮事件
 def end_chat():
     global chat_id_saved
@@ -63,6 +64,30 @@ def end_chat():
     print(f"检查对话chat_id是否已经重置: {chat_id_saved}")
     return [gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)] # 隐藏对话框
 
+# 绑定用户输入事件
+def user_input_handler(user_input):
+    global chat_id_saved
+    global industry_id_saved
+    global template_id_saved
+    model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
+    return [user_input, model_reply]
+
+# 获取模型回复
+def get_model_reply(industry_id, template_id, user_input, chat_id):
+    url = "http://localhost:30504/model_reply"
+    payload = {
+        "industry_id": industry_id,
+        "template_id": template_id,
+        "user_input": user_input,
+        "chat_id": chat_id
+    }
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("model_reply", "当前有些繁忙哦，请稍等一会")
+    except requests.exceptions.RequestException as e:
+        return f"请求失败: {str(e)}"
 
 # def model_select(model_name):
 #     global model_using
@@ -123,7 +148,7 @@ with gr.Blocks() as demo1:
 
         start_button.click(start_chat, None, [msg, end_button, start_button], queue=False)
         end_button.click(end_chat, None, [msg, end_button, start_button], queue=False)
-
+        msg.submit(user_input_handler, msg, chatbot, queue=False)
 
     with gr.Tab("📥话术配置"):
         industry_dropdown = gr.Dropdown(choices=industry_ids, label="选择行业ID", allow_custom_value=True, value='')
@@ -147,4 +172,4 @@ with gr.Blocks() as demo1:
         # 绑定确认按钮的点击事件
         confirm_button.click(update_or_create_template, [industry_input, template_input, content_input], None)
 
-demo1.launch(server_name="121.201.110.83", server_port=7880)
+demo1.launch(server_name="0.0.0.0", server_port=7880)
