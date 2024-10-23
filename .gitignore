@@ -6,5 +6,6 @@ __pycache__
 /utils/__pycache__
 
 # jupyter notebook
-.ipynb_checkpoints/
+.ipynb_checkpoints/gradio_final-checkpoint.py
+.ipynb_checkpoints/main-checkpoint.ipynb
 logs/.ipynb_checkpoints/
