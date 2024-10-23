@@ -70,7 +70,7 @@ def user_input_handler(user_input):
     global industry_id_saved
     global template_id_saved
     model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
-    return [user_input, model_reply]
+    return [[user_input, model_reply]]
 
 # 获取模型回复
 def get_model_reply(industry_id, template_id, user_input, chat_id):
@@ -85,9 +85,14 @@ def get_model_reply(industry_id, template_id, user_input, chat_id):
         response = requests.post(url, json=payload)
         response.raise_for_status()
         data = response.json()
-        return data.get("model_reply", "当前有些繁忙哦，请稍等一会")
+        model_reply = data.get("model_reply", "")
+        if model_reply:
+            model_reply_content = json.loads(model_reply)['reply']
+            return model_reply_content
+        return "当前有些繁忙哦，请稍等一会"
     except requests.exceptions.RequestException as e:
-        return f"请求失败: {str(e)}"
+        print(f"请求失败: {str(e)}")
+        return "当前有些繁忙哦，请稍等一会"
 
 # def model_select(model_name):
 #     global model_using
