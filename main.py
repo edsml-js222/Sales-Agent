@@ -10,7 +10,7 @@ import time
 import json
 import numpy as np
 from tqdm import tqdm
-from pymilvus import FieldSchema, DataType, CollectionSchema
+#from pymilvus import FieldSchema, DataType, CollectionSchema
 
 # 获取当前进程ID
 pid = str(os.getpid())
