@@ -54,7 +54,14 @@ def generate_chat_id():
 def start_chat():
     global chat_id_saved
     chat_id_saved = generate_chat_id()
-    return gr.update(visible=True) # 显示对话框
+    print(f"当前对话chat_id: {chat_id_saved}")
+    return [gr.update(visible=True, interactive=True), gr.update(visible=True), gr.update(visible=False)] # 显示对话框
+# 绑定结束对话按钮事件
+def end_chat():
+    global chat_id_saved
+    chat_id_saved = ''
+    print(f"检查对话chat_id是否已经重置: {chat_id_saved}")
+    return [gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)] # 隐藏对话框
 
 
 # def model_select(model_name):
@@ -111,8 +118,11 @@ with gr.Blocks() as demo1:
 
         # 用户输入框
         msg = gr.Textbox(placeholder="👉想了解什么项目呀？在这儿告诉我吧", label='', visible=False)
+        # 结束对话按钮
+        end_button = gr.Button("🔚结束对话", visible=False)
 
-        start_button.click(start_chat, None, msg, queue=False)
+        start_button.click(start_chat, None, [msg, end_button, start_button], queue=False)
+        end_button.click(end_chat, None, [msg, end_button, start_button], queue=False)
 
 
     with gr.Tab("📥话术配置"):
@@ -137,4 +147,4 @@ with gr.Blocks() as demo1:
         # 绑定确认按钮的点击事件
         confirm_button.click(update_or_create_template, [industry_input, template_input, content_input], None)
 
-demo1.launch(server_name="0.0.0.0", server_port=7880)
+demo1.launch(server_name="121.201.110.83", server_port=7880)
