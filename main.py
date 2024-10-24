@@ -110,23 +110,20 @@ async def model_reply(request:Request):
         template_id = data.get("template_id")
         user_input = data.get("user_input")
         history = get_dialogue_data(data)
-
-        if not industry_id or not template_id:
-            return {"status":400, "msg": "Missing required information"}
-
+        
         template_info = sales_template_db.find_one(
             {"industry_id": industry_id, "template_id": template_id}, sort=[('_id', -1)]
         )
 
-        if not template_info:
-            return {"status": 404, "msg": "Template not found"}
+        # if not template_info:
+        #     return {"status": 404, "msg": "Template not found"}
 
         template_content = template_info.get("template_content", "")        
- 
+
         if not template_content:
             app_logger.warning(f"Template content not found for chat_id: {data.get('chat_id')}, use default template content")
             template_content = "以一名有亲和力的，有耐心的销售人员身份来回答客户的问题。"
-        
+        print(f"template_content: {template_content}")
         # 实现模型回复的逻辑
         model_reply, input_tokens, output_tokens = get_sales_reply(industry_id, template_content, user_input, history, model_name="gpt-4o-mini", temperature=0.1)
 

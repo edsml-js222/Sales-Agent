@@ -41,8 +41,8 @@ sales_template_db = db["sales_template_db"]
 industry_ids = sales_template_db.distinct('industry_id')
 template_ids = sales_template_db.distinct('template_id')
 
-industry_id_saved = ''
-template_id_saved = ''
+industry_id_saved = '默认'
+template_id_saved = '默认'
 chat_id_saved = ''
 
 def generate_chat_id():
@@ -88,6 +88,7 @@ def get_model_reply(industry_id, template_id, user_input, chat_id):
         response.raise_for_status()
         data = response.json()
         model_reply = data.get("model_reply", "")
+        print(f"model_reply: {model_reply}\ndata: {data}")
         if model_reply:
             model_reply_content = json.loads(model_reply)['reply']
             return model_reply_content
