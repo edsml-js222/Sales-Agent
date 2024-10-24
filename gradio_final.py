@@ -31,7 +31,6 @@ init_mess_store = [
     "您好！我是Health-OK的小H。很高兴能为您提供我们的医疗设备资讯，让我们一起找出最佳选择吧！🌟", 
     "您好，我是Health-OK的小H，期待帮助您找到理想的医疗设备解决方案，随时乐意为您服务！😊"
 ]
-init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
 
 # 连接到MongoDB
 database_name = 'smart_salesman'
@@ -62,15 +61,18 @@ def end_chat():
     global chat_id_saved
     chat_id_saved = ''
     print(f"检查对话chat_id是否已经重置: {chat_id_saved}")
-    return [gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)] # 隐藏对话框
+    init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
+    initial_message = [[None, init_mess]]
+    return [gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), initial_message] # 隐藏对话框
 
 # 绑定用户输入事件
-def user_input_handler(user_input):
+def user_input_handler(user_input, history):
     global chat_id_saved
     global industry_id_saved
     global template_id_saved
     model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
-    return [[user_input, model_reply], ""]
+    history.append([user_input, model_reply])
+    return [history, ""]
 
 # 获取模型回复
 def get_model_reply(industry_id, template_id, user_input, chat_id):
@@ -140,6 +142,7 @@ with gr.Blocks() as demo1:
     # dropdown.change(model_select, dropdown)
     
     with gr.Tab("🧑‍💼AI销售助手"):
+        init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
         initial_message = [[None, init_mess]]
         chatbot = gr.Chatbot(value=initial_message)
 
@@ -152,8 +155,8 @@ with gr.Blocks() as demo1:
         end_button = gr.Button("🔚结束对话", visible=False)
 
         start_button.click(start_chat, None, [msg, end_button, start_button], queue=False)
-        end_button.click(end_chat, None, [msg, end_button, start_button], queue=False)
-        msg.submit(user_input_handler, msg, [chatbot, msg], queue=False)
+        end_button.click(end_chat, None, [msg, end_button, start_button, chatbot], queue=False)
+        msg.submit(user_input_handler, [msg, chatbot], [chatbot, msg], queue=False)
 
     with gr.Tab("📥话术配置"):
         industry_dropdown = gr.Dropdown(choices=industry_ids, label="选择行业ID", allow_custom_value=True, value='')
