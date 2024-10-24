@@ -121,10 +121,11 @@ async def model_reply(request:Request):
         if not template_info:
             return {"status": 404, "msg": "Template not found"}
 
-        template_content = template_info.get("template_content")        
+        template_content = template_info.get("template_content", "")        
  
         if not template_content:
-            return {"status": 404, "msg": "Template content not found"}
+            app_logger.warning(f"Template content not found for chat_id: {data.get('chat_id')}, use default template content")
+            template_content = "以一名有亲和力的，有耐心的销售人员身份来回答客户的问题。"
         
         # 实现模型回复的逻辑
         model_reply, input_tokens, output_tokens = get_sales_reply(industry_id, template_content, user_input, history, model_name="gpt-4o-mini", temperature=0.1)
