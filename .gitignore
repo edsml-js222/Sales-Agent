@@ -8,6 +8,7 @@ __pycache__
 # jupyter notebook
 .ipynb_checkpoints/gradio_final-checkpoint.py
 .ipynb_checkpoints/main-checkpoint.ipynb
+.ipynb_checkpoints/test_main-checkpoint.ipynb
 algorithm/sales_reply/.ipynb_checkpoints/
 utils/.ipynb_checkpoints/
 logs/.ipynb_checkpoints/
