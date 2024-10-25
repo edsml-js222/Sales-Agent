@@ -192,7 +192,7 @@ def show_new_template_input():
         gr.update(visible=False),
         gr.update(visible=True, allow_custom_value=True, value=''),
         gr.update(visible=True, allow_custom_value=True, value=''),
-        gr.update(visible=True, allow_custom_value=True, value='')
+        gr.update(visible=True)
     ]
 
 def save_template_to_db(industry_id, template_id, template_content):
