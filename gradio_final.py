@@ -325,7 +325,7 @@ with gr.Blocks() as demo1:
                 new_template_content = gr.TextArea(label="模板内容输入", lines=5, visible=False)
                 save_btn = gr.Button("💾存入数据库", visible=False)
 
-                with gr.Group(visible=False) as confirm_box:
+                with gr.Modal(visible=False) as confirm_modal:
                     gr.Markdown("### 确认保存")
                     confirm_text = gr.Markdown("")
                     with gr.Row():
@@ -343,10 +343,10 @@ with gr.Blocks() as demo1:
 
         new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, new_template_row, new_template_content, save_btn], queue=False)
 
-        save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_template_input, new_template_content], outputs=[confirm_box, confirm_text], queue=False)
+        save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_template_input, new_template_content], outputs=[confirm_modal, confirm_text], queue=False)
 
-        confirm_yes.click(fn=confirm_save, inputs=[new_industry_input, new_template_input, new_template_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
+        confirm_yes.click(fn=confirm_save, inputs=[new_industry_input, new_template_input, new_template_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_modal, confirm_text], queue=False)
 
-        confirm_no.click(fn=confirm_save, inputs=[new_industry_input, new_template_input, new_template_content, gr.Textbox(value=False, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
+        confirm_no.click(fn=confirm_save, inputs=[new_industry_input, new_template_input, new_template_content, gr.Textbox(value=False, visible=False)], outputs=[confirm_modal, confirm_text], queue=False)
 
 demo1.launch(server_name="0.0.0.0", server_port=7880)
