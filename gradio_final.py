@@ -126,7 +126,10 @@ def connect_database():
             gr.update(visible=True, choices=industry_ids), # show industry_ids options
             gr.update(visible=False), # hide template_ids options
             gr.update(visible=False), # hide template_content display
-            "数据库连接成功"
+            "数据库连接成功",
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False)
         ]
     except Exception as e:
         print(f"连接数据库失败: {str(e)}")
@@ -322,7 +325,7 @@ with gr.Blocks() as demo1:
                 new_template_content = gr.TextArea(label="模板内容输入", lines=5, visible=False)
                 save_btn = gr.Button("💾存入数据库", visible=False)
 
-                with gr.Box(visible=False) as confirm_box:
+                with gr.Group(visible=False) as confirm_box:
                     gr.Markdown("### 确认保存")
                     confirm_text = gr.Markdown("")
                     with gr.Row():
@@ -332,7 +335,7 @@ with gr.Blocks() as demo1:
             with gr.Column(scale=2):
                 template_content = gr.TextArea(label="模版内容预览", interactive=False, visible=False, lines=10)
         # 事件绑定
-        connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, status_message], queue=False)
+        connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, status_message, new_template_row, new_template_content, save_btn], queue=False)
         
         industry_dropdown.change(fn=update_template_choices, inputs=industry_dropdown, outputs=[template_dropdown, template_content, status_message], queue=False)
 
