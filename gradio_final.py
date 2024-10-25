@@ -123,7 +123,7 @@ def connect_database():
         sales_template_db = db['sales_template_db']
         industry_ids = list(sales_template_db.distinct('industry_id'))
         return [
-            gr.update(visible=True, choices=industry_ids), # show industry_ids options
+            gr.update(visible=True, choices=industry_ids, allow_custom_value=True, value=''), # show industry_ids options
             gr.update(visible=False), # hide template_ids options
             gr.update(visible=False), # hide template_content display
             "数据库连接成功",
@@ -158,7 +158,7 @@ def update_template_choices(industry_id):
         {'industry_id': industry_id}
     ).distinct('template_id'))
     return [
-        gr.update(visible=True, choices=templates_ids), # show template_ids options
+        gr.update(visible=True, choices=templates_ids, allow_custom_value=True, value=''), # show template_ids options
         gr.update(visible=False), # hide template_content display
         f"已找到{len(templates_ids)}个模板"
     ]
@@ -190,9 +190,9 @@ def show_new_template_input():
         gr.update(visible=False),
         gr.update(visible=False),
         gr.update(visible=False),
-        gr.update(visible=True),
-        gr.update(visible=True),
-        gr.update(visible=True)
+        gr.update(visible=True, allow_custom_value=True, value=''),
+        gr.update(visible=True, allow_custom_value=True, value=''),
+        gr.update(visible=True, allow_custom_value=True, value='')
     ]
 
 def save_template_to_db(industry_id, template_id, template_content):
