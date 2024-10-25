@@ -190,8 +190,8 @@ def show_new_template_input():
         gr.update(visible=False),
         gr.update(visible=False),
         gr.update(visible=False),
-        gr.update(visible=True, allow_custom_value=True, value=''),
-        gr.update(visible=True, allow_custom_value=True, value=''),
+        gr.update(visible=True, value=''),
+        gr.update(visible=True, value=''),
         gr.update(visible=True)
     ]
 
@@ -319,8 +319,8 @@ with gr.Blocks() as demo1:
                 template_dropdown = gr.Dropdown(choices=[], label="选择模板ID", allow_custom_value=True, value='', visible=False)
 
                 with gr.Row(visible=False) as new_template_row:
-                    new_industry_input = gr.Textbox(label="行业ID输入", scale=1)
-                    new_template_input = gr.Textbox(label="模板ID输入", scale=1)
+                    new_industry_input = gr.Textbox(label="行业ID输入", value='', scale=1)
+                    new_template_input = gr.Textbox(label="模板ID输入", value='', scale=1)
                     
                 new_template_content = gr.TextArea(label="模板内容输入", lines=5, visible=False)
                 save_btn = gr.Button("💾存入数据库", visible=False)
