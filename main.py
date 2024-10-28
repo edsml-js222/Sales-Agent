@@ -112,8 +112,9 @@ async def slots_recognition(request:Request):
         data = await request.json()
         user_input = data.get("user_input")
         current_slots = data.get("current_slots")
+        print(f"current_slots: {current_slots}\ntype: {type(current_slots)}")
         chat_id = data.get("chat_id")
-        slots_recognition, _, _ = extract_slot_info(user_input, current_slots)
+        slots_recognition =  extract_slot_info(user_input, current_slots)
 
         # 用专门的槽位日志记录器
         slots_logger.info(
