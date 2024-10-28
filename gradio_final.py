@@ -57,7 +57,7 @@ def generate_chat_id():
 def start_chat():
     global chat_id_saved
     global slotinfo_saved
-    slotinfo_saved = SlotInfo()
+    slotinfo_saved = SlotInfo().to_dict()
     chat_id_saved = generate_chat_id()
     print(f"当前对话chat_id: {chat_id_saved}")
     return [gr.update(visible=True, interactive=True), gr.update(visible=True), gr.update(visible=False)] # 显示对话框

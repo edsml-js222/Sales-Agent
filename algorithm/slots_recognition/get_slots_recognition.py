@@ -13,16 +13,21 @@ class SlotInfo:
             "联系方式": 0.0,
             "需求": 0.0,
         }
+    def to_dict(self):
+        return {
+            "slots": self.slots,
+            "confidence": self.confidence
+        }
 
-def extract_slot_info(user_input: str, current_slots: SlotInfo, model_name="gpt-4o-mini", temperature=0.1) -> SlotInfo:
+def extract_slot_info(user_input: str, current_slots: dict, model_name="gpt-4o-mini", temperature=0.1) -> dict:
     """
     使用llm分析文本并且提取槽位信息
     """
     prompt = f"""
     请分析以下文本, 提取用户的个人信息。如果发现新信息, 请以JSON格式返回。
     需要提取的字段：姓名、联系方式、需求
-    当前已知槽位信息：{current_slots.slots}
-    当前已知槽位置信度：{current_slots.confidence}
+    当前已知槽位信息：{current_slots["slots"]}
+    当前已知槽位置信度：{current_slots["confidence"]}
     
     用户文本：{user_input}
     
@@ -40,9 +45,9 @@ def extract_slot_info(user_input: str, current_slots: SlotInfo, model_name="gpt-
     try:
         new_slots = json.loads(model_reply)
         for slot in new_slots:
-            if slot['confidence'] > current_slots.confidence[slot['slot']]:
-                current_slots.slots[slot['slot']] = slot['value']
-                current_slots.confidence[slot['slot']] = slot['confidence']
+            if slot['confidence'] > current_slots["confidence"][slot['slot']]:
+                current_slots["slots"][slot['slot']] = slot['value']
+                current_slots["confidence"][slot['slot']] = slot['confidence']
     except Exception as e:
         print(f"Error in extract_slot_info: {str(e)}")
     return current_slots
