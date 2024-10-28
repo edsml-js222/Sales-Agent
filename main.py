@@ -31,6 +31,7 @@ sys.path.append(f"{current_dir}/utils")
 from utils.logger_config import setup_logger
 from utils.connect_mongo import _init_mongo_connect
 from algorithm.sales_reply.get_sales_reply import get_sales_reply
+from algorithm.slots_recognition.get_slots_recognition import extract_slot_info
 # import utils.MilvusDB as mdb
 
 
@@ -41,6 +42,7 @@ app = FastAPI()
 db = _init_mongo_connect(database_name=project_name, port=27017)
 sales_template_db = db["sales_template_db"]
 user_dialogue_db = db["user_dialogue_db"]
+slots_db = db["slots_db"]
 
 # 存储日志数据
 # log_db = db["log_db"]
@@ -49,6 +51,7 @@ user_dialogue_db = db["user_dialogue_db"]
 
 # Create a logger for the application
 app_logger = setup_logger('app_logger', f"{current_dir}/logs/app.log")
+slots_logger = setup_logger('slots_logger', f"{current_dir}/logs/slots.log")
 
 # 获取历史对话数据
 def get_dialogue_data(data):
@@ -100,6 +103,40 @@ async def sales_template_save(request:Request):
     except Exception as e:
         app_logger.error(f"Error in sales_template_save: {str(e)}")
         return {"status": 500, "msg": "Internal server error"}
+    
+
+# 槽位信息提取模块
+@app.post("/slots_recognition")
+async def slots_recognition(request:Request):
+    try:
+        data = await request.json()
+        user_input = data.get("user_input")
+        current_slots = data.get("current_slots")
+        chat_id = data.get("chat_id")
+        slots_recognition, _, _ = extract_slot_info(user_input, current_slots)
+
+        # 用专门的槽位日志记录器
+        slots_logger.info(
+            json.dumps({
+                "chat_id": chat_id,
+                "user_input": user_input,
+                "current_slots": current_slots,
+                "after_slots_recognition": slots_recognition
+            }, ensure_ascii=False)
+        )
+
+        # 将槽位信息存入数据库
+        slots_db.insert_one({
+            "chat_id": chat_id,
+            "slots_recognition": slots_recognition,
+            "insert_time":time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        })
+        return {"status": 200, "msg": "Slots recognition success", "slots_recognition": slots_recognition}
+    except Exception as e:
+        app_logger.error(f"Error in slots_recognition: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
+    
+
 
 # 模型回复模块
 @app.post("/model_reply")

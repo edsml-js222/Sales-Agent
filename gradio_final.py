@@ -1,5 +1,6 @@
 import gradio as gr
 from utils.connect_mongo import _init_mongo_connect
+from algorithm.slots_recognition.get_slots_recognition import SlotInfo
 import requests
 import random
 import string
@@ -16,6 +17,7 @@ setproctitle.setproctitle(project_name)
 industry_id_saved = '默认'
 template_id_saved = '默认'
 chat_id_saved = ''
+slotinfo_saved = ''
 database_name = 'smart_salesman'
 
 # model_options = [
@@ -54,6 +56,8 @@ def generate_chat_id():
 # 绑定按钮点击事件
 def start_chat():
     global chat_id_saved
+    global slotinfo_saved
+    slotinfo_saved = SlotInfo()
     chat_id_saved = generate_chat_id()
     print(f"当前对话chat_id: {chat_id_saved}")
     return [gr.update(visible=True, interactive=True), gr.update(visible=True), gr.update(visible=False)] # 显示对话框
@@ -72,7 +76,11 @@ def user_input_handler(user_input, history):
     global chat_id_saved
     global industry_id_saved
     global template_id_saved
+    global slotinfo_saved
     model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
+    slots_recognition_res = slots_recognition(user_input, slotinfo_saved, chat_id_saved)
+    # 更新槽位信息
+    slotinfo_saved = slots_recognition_res
     history.append([user_input, model_reply])
     return [history, ""]
 
@@ -95,6 +103,24 @@ def get_model_reply(industry_id, template_id, user_input, chat_id):
             model_reply_content = json.loads(model_reply)['reply']
             return model_reply_content
         return "当前有些繁忙哦，请稍等一会"
+    except requests.exceptions.RequestException as e:
+        print(f"请求失败: {str(e)}")
+        return "当前有些繁忙哦，请稍等一会"
+
+# 槽位信息识别
+def slots_recognition(user_input, current_slots, chat_id):
+    url = "http://localhost:30504/slots_recognition"
+    payload = {
+        "user_input": user_input,
+        "current_slots": current_slots,
+        "chat_id": chat_id
+    }
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        slots_recognition = data.get("slots_recognition", "")
+        return slots_recognition
     except requests.exceptions.RequestException as e:
         print(f"请求失败: {str(e)}")
         return "当前有些繁忙哦，请稍等一会"
