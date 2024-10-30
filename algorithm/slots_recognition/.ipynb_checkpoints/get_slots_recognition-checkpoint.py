@@ -31,6 +31,14 @@ def extract_slot_info(user_input: str, current_slots: dict, model_name="gpt-4o-m
     
     用户文本：{user_input}
     
+    你可以参考的示例：
+    
+      -- 用户："瘦脸相关的吧"
+      -- 你：[{{"slot": "需求", "value": "瘦脸", "confidence": 0.8}},
+      
+      -- 用户："美白"
+      -- 你：[{{"slot": "需求", "value": "美白", "confidence": 0.8}},
+    
     请以如下格式返回（只返回有新发现的字段）：
     [{{"slot": "姓名", "value": "张三", "confidence": 0.9}}, {{"slot": "联系方式", "value": "1234567890", "confidence": 0.8}}]
     
@@ -45,7 +53,7 @@ def extract_slot_info(user_input: str, current_slots: dict, model_name="gpt-4o-m
     try:
         new_slots = json.loads(model_reply)
         for slot in new_slots:
-            if slot['confidence'] > current_slots["confidence"][slot['slot']]:
+            if slot['confidence'] >= current_slots["confidence"][slot['slot']]:
                 current_slots["slots"][slot['slot']] = slot['value']
                 current_slots["confidence"][slot['slot']] = slot['confidence']
     except Exception as e:

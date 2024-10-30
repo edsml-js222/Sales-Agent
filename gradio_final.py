@@ -27,16 +27,12 @@ database_name = 'smart_salesman'
 # model_using = ''
 
 init_mess_store = [
-    "您好，我是Health-OK公司的专属销售助手小H！我们专注于提供优质医疗设备，很高兴能为您提供帮助，让我们一起找到最合适的解决方案吧！😊", 
-    "您好！我是Health-OK公司的销售代表小H。我们的医疗设备能够大大提升工作效率，期待与您分享更多信息！✨", 
-    "嗨！我是Health-OK的小H，专注于医疗设备的销售。您有什么需求，我非常乐意为您提供专业的建议哦！🤗", 
-    "您好！我是来自Health-OK的小H，专业为您介绍优质医疗设备。让我们一起探讨一下您的需求吧！🌟", 
-    "您好，我是Health-OK的小H。我们提供的医疗设备注重品质与功能，期待能为您提供帮助！💼", 
-    "您好！我是Health-OK的小H，您对我们的医疗设备感兴趣吗？我随时准备为您提供更多信息！📞", 
-    "嘿，您好！我是Health-OK的销售助手小H，期待与您交流一下我们的医疗设备优势哦！🌈", 
-    "您好，我是小H，来自Health-OK。我们的医疗设备旨在提升您的工作效率，随时为您解答疑问！👍", 
-    "您好！我是Health-OK的小H。很高兴能为您提供我们的医疗设备资讯，让我们一起找出最佳选择吧！🌟", 
-    "您好，我是Health-OK的小H，期待帮助您找到理想的医疗设备解决方案，随时乐意为您服务！😊"
+    "您好，我是Beauty-OK公司的专属销售助手小H！我们专注于提供优质医美服务，很高兴能为您提供帮助，让我们一起找到最合适的解决方案吧！😊",  
+    "嗨！我是Beauty-OK的小H，专注于医美服务的销售。您有什么需求，我非常乐意为您提供专业的建议哦！🤗", 
+    "您好！我是来自Beauty-OK的小H，专业为您介绍优质医美服务。让我们一起探讨一下您的需求吧！🌟", 
+    "您好！我是Beauty-OK的小H，您对我们的医美服务感兴趣吗？我随时准备为您提供更多信息！📞", 
+    "嘿，您好！我是Beauty-OK的销售助手小H，期待与您交流一下我们的医美服务哦！🌈", 
+    "您好，我是Beauty-OK的小H，期待帮助您找到理想的医美服务，随时乐意为您服务！😊"
 ]
 
 # # 连接到MongoDB
@@ -299,7 +295,7 @@ with gr.Blocks() as demo1:
     with gr.Tab("🧑‍💼AI销售助手"):
         init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
         initial_message = [[None, init_mess]]
-        chatbot = gr.Chatbot(value=initial_message)
+        chatbot = gr.Chatbot(value=initial_message, height=600)
 
         # 开始对话按钮
         start_button = gr.Button("🚀开始对话")
