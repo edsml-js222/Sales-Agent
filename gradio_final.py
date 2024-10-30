@@ -145,6 +145,10 @@ def show_template_id(template_id):
 def connect_database():
     """连接数据库并且获取独特的industry_id"""
     try:
+        global industry_id_saved
+        global template_id_saved
+        industry_id_saved = '默认'
+        template_id_saved = '默认'
         db = _init_mongo_connect(database_name=database_name)
         sales_template_db = db['sales_template_db']
         industry_ids = list(sales_template_db.distinct('industry_id'))
