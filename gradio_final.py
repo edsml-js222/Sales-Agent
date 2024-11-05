@@ -15,6 +15,7 @@ project_name = "smart_salesman_gradio"
 setproctitle.setproctitle(project_name)
 
 industry_id_saved = '默认'
+brand_id_saved = '默认'
 template_id_saved = '默认'
 chat_id_saved = ''
 slotinfo_saved = ''
@@ -167,10 +168,11 @@ def connect_database():
             "数据库连接失败"
         ]
         
-def update_template_choices(industry_id):
-    """update template_ids options according to industry_id"""
+def update_brands_choices(industry_id):
+    """update brands_ids options according to industry_id"""
     if not industry_id:
         return [
+            gr.update(visible=False),
             gr.update(visible=False),
             gr.update(visible=False),
             "请先选择行业id"
@@ -180,16 +182,40 @@ def update_template_choices(industry_id):
 
     db = _init_mongo_connect(database_name=database_name)
     sales_template_db = db['sales_template_db']
-    templates_ids = list(sales_template_db.find(
+    brand_ids = list(sales_template_db.find(
         {'industry_id': industry_id}
-    ).distinct('template_id'))
+    ).distinct('brand_id'))
     return [
-        gr.update(visible=True, choices=templates_ids, allow_custom_value=True, value=''), # show template_ids options
+        gr.update(visible=True, choices=brand_ids, allow_custom_value=True, value=''), # show brand_ids options
+        gr.update(visible=False), # hide template_ids options
         gr.update(visible=False), # hide template_content display
-        f"已找到{len(templates_ids)}个模板"
+        f"已找到{len(brand_ids)}个品牌"
     ]
 
-def show_template_content(industry_id, template_id):
+def update_template_choices(industry_id, brand_id):
+    """update template_ids options according to industry_id and brand_id"""
+    if not brand_id:
+        return [
+            gr.update(visible=False),
+            gr.update(visible=False),
+            "请先选择品牌id"
+        ]
+
+    global brand_id_saved
+    brand_id_saved = brand_id
+
+    db = _init_mongo_connect(database_name=database_name)
+    sales_template_db = db['sales_template_db']
+    template_ids = list(sales_template_db.find(
+        {'industry_id': industry_id, 'brand_id': brand_id}
+    ).distinct('template_id'))
+    return [
+        gr.update(visible=True, choices=template_ids, allow_custom_value=True, value=''), # show template_ids options
+        gr.update(visible=False), # hide template_content display
+        f"已找到{len(template_ids)}个模板"
+    ]
+
+def show_template_content(industry_id, brand_id, template_id):
     """update template_content according to industry_id and template_id"""
     if not template_id:
         return [
@@ -202,7 +228,7 @@ def show_template_content(industry_id, template_id):
     db = _init_mongo_connect(database_name=database_name)
     sales_template_db = db['sales_template_db']
     template_content = sales_template_db.find_one(
-        {'industry_id': industry_id, 'template_id': template_id}
+        {'industry_id': industry_id, 'brand_id': brand_id, 'template_id': template_id}
     )
     if template_content and 'template_content' in template_content:
         return [
@@ -221,7 +247,7 @@ def show_new_template_input():
         gr.update(visible=True)
     ]
 
-def save_template_to_db(industry_id, template_id, template_content):
+def save_template_to_db(industry_id, brand_id, template_id, template_content):
     """保存模版到数据库"""
     try:
         db = _init_mongo_connect(database_name=database_name)
@@ -230,12 +256,13 @@ def save_template_to_db(industry_id, template_id, template_content):
         # 检查是否已存在相同的记录
         existing = sales_template_db.find_one({
             'industry_id': industry_id,
+            'brand_id': brand_id,
             'template_id': template_id
         })
         
         if existing:
             sales_template_db.update_one(
-                {'industry_id': industry_id, 'template_id': template_id},
+                {'industry_id': industry_id, 'brand_id': brand_id, 'template_id': template_id},
                 {'$set': {'template_content': template_content}}
             )
             return "模板内容已更新！"
@@ -243,6 +270,7 @@ def save_template_to_db(industry_id, template_id, template_content):
         # 插入新记录
         sales_template_db.insert_one({
             'industry_id': industry_id,
+            'brand_id': brand_id,
             'template_id': template_id,
             'template_content': template_content
         })
@@ -268,14 +296,14 @@ def save_template_to_db(industry_id, template_id, template_content):
 #         })
 #         return "新模板已创建！"
 
-def save_with_confirmation(industry_id, template_id, template_content):
+def save_with_confirmation(industry_id, brand_id, template_id):
     """带确认对话框的保存功能"""
     return [
         gr.update(visible=True),
-        f"确定要保存话术模版到:\n行业id: {industry_id}\n模板id: {template_id}吗？"
+        f"确定要保存话术模版到:\n行业id: {industry_id}\n品牌id: {brand_id}\n模板id: {template_id}吗？"
     ]
 
-def confirm_save(industry_id, template_id, template_content, confirmed):
+def confirm_save(industry_id, brand_id, template_id, template_content, confirmed):
     """确认保存后的处理"""
     if not confirmed:
         return [gr.update(visible=False), "已取消保存"]
@@ -342,10 +370,12 @@ with gr.Blocks() as demo1:
                     new_template_btn = gr.Button("📝插入新话术模版")
 
                 industry_dropdown = gr.Dropdown(choices=[], label="选择行业ID", allow_custom_value=True, value='', visible=False)
+                brands_dropdown = gr.Dropdown(choices=[], label="选择品牌ID", allow_custom_value=True, value='', visible=False)
                 template_dropdown = gr.Dropdown(choices=[], label="选择模板ID", allow_custom_value=True, value='', visible=False)
 
                 with gr.Row(visible=False) as new_template_row:
                     new_industry_input = gr.Textbox(label="行业ID输入", value='', scale=1)
+                    new_brand_input = gr.Textbox(label="品牌ID输入", value='', scale=1)
                     new_template_input = gr.Textbox(label="模板ID输入", value='', scale=1)
                     
                 new_template_content = gr.TextArea(label="模板内容输入", lines=5, visible=False)
@@ -363,16 +393,18 @@ with gr.Blocks() as demo1:
         # 事件绑定
         connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, status_message, new_template_row, new_template_content, save_btn], queue=False)
         
-        industry_dropdown.change(fn=update_template_choices, inputs=industry_dropdown, outputs=[template_dropdown, template_content, status_message], queue=False)
+        industry_dropdown.change(fn=update_brands_choices, inputs=industry_dropdown, outputs=[brands_dropdown, template_dropdown, template_content, status_message], queue=False)
 
-        template_dropdown.change(fn=show_template_content, inputs=[industry_dropdown, template_dropdown], outputs=[template_content, status_message], queue=False)
+        brands_dropdown.change(fn=update_template_choices, inputs=[industry_dropdown, brands_dropdown], outputs=[template_dropdown, template_content, status_message], queue=False)
+
+        template_dropdown.change(fn=show_template_content, inputs=[industry_dropdown, brands_dropdown, template_dropdown], outputs=[template_content, status_message], queue=False)
 
         new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, new_template_row, new_template_content, save_btn], queue=False)
 
-        save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_template_input, new_template_content], outputs=[confirm_box, confirm_text], queue=False)
+        save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content], outputs=[confirm_box, confirm_text], queue=False)
 
-        confirm_yes.click(fn=confirm_save, inputs=[new_industry_input, new_template_input, new_template_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
+        confirm_yes.click(fn=confirm_save, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
 
-        confirm_no.click(fn=confirm_save, inputs=[new_industry_input, new_template_input, new_template_content, gr.Textbox(value=False, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
+        confirm_no.click(fn=confirm_save, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content, gr.Textbox(value=False, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
 
 demo1.launch(server_name="0.0.0.0", server_port=7880)
