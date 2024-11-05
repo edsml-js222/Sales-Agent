@@ -242,6 +242,7 @@ def show_new_template_input():
         gr.update(visible=False),
         gr.update(visible=False),
         gr.update(visible=False),
+        gr.update(visible=False),
         gr.update(visible=True, value=''),
         gr.update(visible=True, value=''),
         gr.update(visible=True)
@@ -308,7 +309,7 @@ def confirm_save(industry_id, brand_id, template_id, template_content, confirmed
     if not confirmed:
         return [gr.update(visible=False), "已取消保存"]
 
-    result = save_template_to_db(industry_id, template_id, template_content)
+    result = save_template_to_db(industry_id, brand_id, template_id, template_content)
     return [gr.update(visible=False), result]
 
 with gr.Blocks() as demo1:
@@ -399,9 +400,9 @@ with gr.Blocks() as demo1:
 
         template_dropdown.change(fn=show_template_content, inputs=[industry_dropdown, brands_dropdown, template_dropdown], outputs=[template_content, status_message], queue=False)
 
-        new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, new_template_row, new_template_content, save_btn], queue=False)
+        new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, new_template_row, new_template_content, save_btn], queue=False)
 
-        save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content], outputs=[confirm_box, confirm_text], queue=False)
+        save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_brand_input, new_template_input], outputs=[confirm_box, confirm_text], queue=False)
 
         confirm_yes.click(fn=confirm_save, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
 
