@@ -72,10 +72,12 @@ def end_chat():
 def user_input_handler(user_input, history):
     global chat_id_saved
     global industry_id_saved
+    global brand_id_saved
+
     global template_id_saved
     global slotinfo_saved
     model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
-    slots_recognition_res = slots_recognition(user_input, slotinfo_saved, chat_id_saved)
+    slots_recognition_res = slots_recognition(user_input, slotinfo_saved, chat_id_saved, industry_id_saved, brand_id_saved, template_id_saved)
     # 更新槽位信息
     slotinfo_saved = slots_recognition_res
     history.append([user_input, model_reply])
@@ -105,12 +107,17 @@ def get_model_reply(industry_id, template_id, user_input, chat_id):
         return "当前有些繁忙哦，请稍等一会"
 
 # 槽位信息识别
-def slots_recognition(user_input, current_slots, chat_id):
+def slots_recognition(user_input, current_slots, chat_id, industry_id, brand_id, template_id):
     url = "http://localhost:30504/slots_recognition"
     payload = {
         "user_input": user_input,
         "current_slots": current_slots,
-        "chat_id": chat_id
+        "chat_id": chat_id,
+        "industry_id": industry_id,
+        "brand_id": brand_id,
+        "template_id": template_id
+
+
     }
     try:
         response = requests.post(url, json=payload)

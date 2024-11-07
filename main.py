@@ -114,12 +114,18 @@ async def slots_recognition(request:Request):
         current_slots = data.get("current_slots")
         print(f"current_slots: {current_slots}\ntype: {type(current_slots)}")
         chat_id = data.get("chat_id")
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
         slots_recognition =  extract_slot_info(user_input, current_slots)
 
         # 用专门的槽位日志记录器
         slots_logger.info(
             json.dumps({
                 "chat_id": chat_id,
+                "industry_id": industry_id,
+                "brand_id": brand_id,
+                "template_id": template_id,
                 "user_input": user_input,
                 "current_slots": current_slots,
                 "after_slots_recognition": slots_recognition
@@ -129,6 +135,8 @@ async def slots_recognition(request:Request):
         # 将槽位信息存入数据库
         slots_db.insert_one({
             "chat_id": chat_id,
+            "brand_id": brand_id,
+            "template_id": template_id,
             "slots_recognition": slots_recognition,
             "insert_time":time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         })
