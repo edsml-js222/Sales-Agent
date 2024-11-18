@@ -19,6 +19,7 @@ brand_id_saved = '默认'
 template_id_saved = '默认'
 chat_id_saved = ''
 slotinfo_saved = ''
+chat_history_saved = []
 database_name = 'smart_salesman'
 
 # model_options = [
@@ -50,6 +51,30 @@ def generate_chat_id():
     # 生成一个6位随机字符串
     return ''.join(random.choices(string.ascii_letters + string.digits, k=8))
 
+def save_intention_level():
+    global chat_id_saved
+    global industry_id_saved
+    global brand_id_saved
+    global template_id_saved
+    global chat_history_saved
+    
+    url = "http://localhost:30504/intention_level"
+    data = {
+        "chat_id": chat_id_saved,
+        "industry_id": industry_id_saved,
+        "brand_id": brand_id_saved,
+        "template_id": template_id_saved,
+        "user_history": chat_history_saved
+    }
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        res_status = response.json()['status']
+        return res_status
+    except Exception as e:
+        print(f"请求失败: {str(e)}")
+        return 500
+
 # 绑定按钮点击事件
 def start_chat():
     global chat_id_saved
@@ -61,9 +86,16 @@ def start_chat():
 
 # 绑定结束对话按钮事件
 def end_chat():
+    res_status = save_intention_level()
+    if res_status == 200:
+        print("留资等级判断成功")
+    else:
+        print("留资等级判断失败")
     global chat_id_saved
+    global chat_history_saved
     chat_id_saved = ''
-    print(f"检查对话chat_id是否已经重置: {chat_id_saved}")
+    chat_history_saved = []
+    print(f"检查对话chat_id是否已经重置为空: {chat_id_saved}\n检查对话chat_history是否已经重置为空: {chat_history_saved}")
     init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
     initial_message = [[None, init_mess]]
     return [gr.update(visible=False), gr.update(visible=False), gr.update(visible=True), initial_message] # 隐藏对话框
@@ -73,14 +105,15 @@ def user_input_handler(user_input, history):
     global chat_id_saved
     global industry_id_saved
     global brand_id_saved
-
     global template_id_saved
+    global chat_history_saved
     global slotinfo_saved
     model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
     slots_recognition_res = slots_recognition(user_input, slotinfo_saved, chat_id_saved, industry_id_saved, brand_id_saved, template_id_saved)
     # 更新槽位信息
     slotinfo_saved = slots_recognition_res
     history.append([user_input, model_reply])
+    chat_history_saved.append({"user": user_input})
     return [history, ""]
 
 # 获取模型回复

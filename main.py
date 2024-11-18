@@ -32,6 +32,7 @@ from utils.logger_config import setup_logger
 from utils.connect_mongo import _init_mongo_connect
 from algorithm.sales_reply.get_sales_reply import get_sales_reply
 from algorithm.slots_recognition.get_slots_recognition import extract_slot_info
+from algorithm.intention_level.get_intention_level import get_intention_level
 # import utils.MilvusDB as mdb
 
 
@@ -43,6 +44,7 @@ db = _init_mongo_connect(database_name=project_name, port=27017)
 sales_template_db = db["sales_template_db"]
 user_dialogue_db = db["user_dialogue_db"]
 slots_db = db["slots_db"]
+intention_level_db = db["intention_level_db"]
 
 # 存储日志数据
 # log_db = db["log_db"]
@@ -184,6 +186,35 @@ async def model_reply(request:Request):
 
     except Exception as e:
         app_logger.error(f"Error in model_reply: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
+    
+# 留资等级判断模块
+@app.post('/intention_level')
+async def intention_level(request:Request):
+    try:
+        data = await request.json()
+        chat_id = data.get("chat_id")
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
+        user_history = data.get("user_history")
+
+        intention_level_result = get_intention_level(user_history)
+        intention_level_db.insert_one(
+            {
+                "chat_id": chat_id,
+                "industry_id": industry_id,
+                "brand_id": brand_id,
+                "template_id": template_id,
+                "intention_level": intention_level_result['intention_level'],
+                "intention_level_clue": intention_level_result['intention_level_clue'],
+                "insert_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            }
+        )
+        return {"status": 200, "msg": "Intention level success", "intention_level_result": intention_level_result}
+
+    except Exception as e:
+        app_logger.error(f"Error in intention_level: {str(e)}")
         return {"status": 500, "msg": "Internal server error"}
 
 
