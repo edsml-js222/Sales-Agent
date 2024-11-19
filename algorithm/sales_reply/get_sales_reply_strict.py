@@ -4,8 +4,8 @@ from algorithm.sales_reply.set_template import SetTemplate
 class GetSalesReplyStrict:
     def __init__(self, project_name: str, industry_id: str, brand_id: str, template_id: str):
         self.template = SetTemplate(project_name, industry_id, brand_id, template_id)
-        self.template_intention = self.template.template_intention
-        self.template_content = self.template.template_content
+        self.template_intention = self.template.sales_template_intention
+        self.template_content = self.template.sales_template_content
         self.template_up_limit = len(self.template_content) # 会话意图上限
         self.dialogue_count = 0 # 会话轮次
         self.user_intention = [] # 用户意图
