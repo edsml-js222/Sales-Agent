@@ -159,7 +159,7 @@ async def new_dialogue(request:Request):
         brand_id = data.get("brand_id")
         template_id = data.get("template_id")
         global strict_reply_instance
-        strict_reply_instance = GetSalesReplyStrict(industry_id, brand_id, template_id)
+        strict_reply_instance = GetSalesReplyStrict(project_name, industry_id, brand_id, template_id)
         return {"status": 200, "msg": "New dialogue success"}
     except Exception as e:
         app_logger.error(f"Error in new_dialogue: {str(e)}")
