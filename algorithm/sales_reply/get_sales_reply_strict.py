@@ -4,6 +4,8 @@ root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 sys.path.append(root_path)
 from triton_inference.get_llm_res import get_llm_res
 from algorithm.sales_reply.set_template import SetTemplate
+from utils.MilvusDB import Milvus
+from utils.m3e_embedding import m3e_embedding
 
 class GetSalesReplyStrict:
     def __init__(self, project_name: str, industry_id: str, brand_id: str, template_id: str):
@@ -13,6 +15,13 @@ class GetSalesReplyStrict:
         self.template_up_limit = len(self.template_intention) # 会话意图上限
         self.dialogue_count = 0 # 会话轮次
         self.user_intention = [] # 用户意图
+        self.industry_id = industry_id
+        self.brand_id = brand_id
+        self.template_id = template_id
+        self.alias_name = project_name
+        self.milvus_instance = Milvus(self.alias_name)
+        self.collection_name = industry_id + "_" + brand_id + "_" + template_id
+        self.collection_using = self.milvus_instance.link_collection(self.collection_name)
 
     def intention_match_llm(self, user_input: str, model_name: str = "gpt-4o-mini", temperature: float = 0.1) -> str:
         """
@@ -42,6 +51,19 @@ class GetSalesReplyStrict:
             {"role": "user", "content": prompt}]
         model_reply, input_tokens, output_tokens = get_llm_res(message, model_name, temperature=temperature)
         return model_reply
+    
+    def faq_reply(self, user_input: str) -> str:
+        """
+        问答回复
+        """
+        query_vector = m3e_embedding(user_input)
+        search_res = self.milvus_instance.search(collection_using=self.collection_using, 
+                                                 query_vector=query_vector, top_k=3, 
+                                                 anns_field="faq_query", 
+                                                 output_fields=["faq_answer"]
+                                                 )
+        search_res_top_content = search_res[0][0].entity.get("faq_answer")
+        return search_res_top_content
 
     def get_sales_reply(self, user_intention: str, user_input: str) -> dict:
         """
