@@ -1,48 +1,12 @@
 from triton_inference.get_llm_res import get_llm_res
-
-template_intention = {"问好": 1, "询问项目": 2, "提供个人有效信息": 3, "结束对话": 4}
-
-node_content_1 = '1'
-node_content_12 = '12'
-node_content_123 = '123'
-node_content_1234 = '1234'
-node_content_124 = '124'
-node_content_1243 = '1243'
-node_content_13 = '13'
-node_content_132 = '132'
-node_content_1324 = '1324'
-node_content_134 = '134'
-node_content_1342 = '1342'
-node_content_14 = '14'
-node_content_142 = '142'
-node_content_1423 = '1423'
-node_content_143 = '143'
-node_content_1432 = '1432'
-
-template_content = {
-    "1": node_content_1,
-    "12": node_content_12,
-    "123": node_content_123,
-    "1234": node_content_1234,
-    "124": node_content_124,
-    "1243": node_content_1243,
-    "13": node_content_13,
-    "132": node_content_132,
-    "1324": node_content_1324,
-    "134": node_content_134,
-    "1342": node_content_1342,
-    "14": node_content_14,
-    "142": node_content_142,
-    "1423": node_content_1423,
-    "143": node_content_143,
-    "1432": node_content_1432,
-}
+from set_template import SetTemplate
 
 class GetSalesReplyStrict:
-    def __init__(self, template_intention: dict, template_content: dict):
-        self.template_intention = template_intention
-        self.template_content = template_content
-        self.template_up_limit = len(template_content) # 会话意图上限
+    def __init__(self, industry_id: str, brand_id: str, template_id: str):
+        self.template = SetTemplate(industry_id, brand_id, template_id)
+        self.template_intention = self.template.template_intention
+        self.template_content = self.template.template_content
+        self.template_up_limit = len(self.template_content) # 会话意图上限
         self.dialogue_count = 0 # 会话轮次
         self.user_intention = [] # 用户意图
 
@@ -75,7 +39,7 @@ class GetSalesReplyStrict:
         model_reply, input_tokens, output_tokens = get_llm_res(message, model_name, temperature=temperature)
         return model_reply
 
-    def get_sales_reply(self, user_intention: str) -> dict:
+    def get_sales_reply(self, user_intention: str, user_input: str) -> dict:
         """
         获取销售回复
         """
@@ -85,7 +49,11 @@ class GetSalesReplyStrict:
         if self.dialogue_count % self.template_up_limit == 1 and user_intention != "问好":
             self.user_intention.append("问好")
         self.user_intention.append(user_intention)
-        template_key = (''.join(str(template_intention[intention] for intention in self.user_intention[dialogue_circle * self.template_up_limit: self.dialogue_count])))
-        response = self.template_content[template_key]
+        template_key = (''.join(str(self.template_intention[intention] for intention in self.user_intention[dialogue_circle * self.template_up_limit : self.dialogue_count])))
+        if user_intention == "询问项目":
+            response = self.faq_reply(user_input)
+
+        else:
+            response = self.template_content[template_key]
         
         return response
