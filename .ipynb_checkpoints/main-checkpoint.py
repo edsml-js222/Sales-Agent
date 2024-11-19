@@ -31,6 +31,9 @@ sys.path.append(f"{current_dir}/utils")
 from utils.logger_config import setup_logger
 from utils.connect_mongo import _init_mongo_connect
 from algorithm.sales_reply.get_sales_reply import get_sales_reply
+from algorithm.sales_reply.get_sales_reply_strict import GetSalesReplyStrict
+from algorithm.slots_recognition.get_slots_recognition import extract_slot_info
+from algorithm.intention_level.get_intention_level import get_intention_level
 # import utils.MilvusDB as mdb
 
 
@@ -41,14 +44,19 @@ app = FastAPI()
 db = _init_mongo_connect(database_name=project_name, port=27017)
 sales_template_db = db["sales_template_db"]
 user_dialogue_db = db["user_dialogue_db"]
+slots_db = db["slots_db"]
+intention_level_db = db["intention_level_db"]
 
 # 存储日志数据
 # log_db = db["log_db"]
 # model_db = db["model_db"]
 
+# 严格回复实例
+strict_reply_instance = None
 
 # Create a logger for the application
 app_logger = setup_logger('app_logger', f"{current_dir}/logs/app.log")
+slots_logger = setup_logger('slots_logger', f"{current_dir}/logs/slots.log")
 
 # 获取历史对话数据
 def get_dialogue_data(data):
@@ -100,7 +108,94 @@ async def sales_template_save(request:Request):
     except Exception as e:
         app_logger.error(f"Error in sales_template_save: {str(e)}")
         return {"status": 500, "msg": "Internal server error"}
+    
 
+# 槽位信息提取模块
+@app.post("/slots_recognition")
+async def slots_recognition(request:Request):
+    try:
+        data = await request.json()
+        user_input = data.get("user_input")
+        current_slots = data.get("current_slots")
+        # print(f"current_slots: {current_slots}\ntype: {type(current_slots)}")
+        chat_id = data.get("chat_id")
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
+        slots_recognition =  extract_slot_info(user_input, current_slots)
+
+        # 用专门的槽位日志记录器
+        slots_logger.info(
+            json.dumps({
+                "chat_id": chat_id,
+                "industry_id": industry_id,
+                "brand_id": brand_id,
+                "template_id": template_id,
+                "user_input": user_input,
+                "current_slots": current_slots,
+                "after_slots_recognition": slots_recognition
+            }, ensure_ascii=False)
+        )
+
+        # 将槽位信息存入数据库
+        slots_db.insert_one({
+            "chat_id": chat_id,
+            "brand_id": brand_id,
+            "template_id": template_id,
+            "slots_recognition": slots_recognition,
+            "insert_time":time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        })
+        return {"status": 200, "msg": "Slots recognition success", "slots_recognition": slots_recognition}
+    except Exception as e:
+        app_logger.error(f"Error in slots_recognition: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
+    
+# 新建对话
+@app.post("/new_dialogue")
+async def new_dialogue(request:Request):
+    try:
+        data = await request.json()
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
+        global strict_reply_instance
+        strict_reply_instance = GetSalesReplyStrict(project_name, industry_id, brand_id, template_id)
+        return {"status": 200, "msg": "New dialogue success"}
+    except Exception as e:
+        app_logger.error(f"Error in new_dialogue: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
+
+# 严格回复模块
+@app.post("/strict_reply")
+async def strict_reply(request:Request):
+    try:
+        global strict_reply_instance
+        data = await request.json()
+        user_input = data.get("user_input")
+        chat_id = data.get("chat_id")
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
+        user_intention = strict_reply_instance.intention_match_llm(user_input)
+        user_intention = json.loads(user_intention).get("intention", "问好")
+        print(f"user_intention: {user_intention}")
+        strict_reply, template_key = strict_reply_instance.get_sales_reply(user_intention, user_input)
+        print(f"strict_reply: {strict_reply}")
+        user_dialogue_db.insert_one({
+          "chat_id": chat_id,
+          "industry_id": industry_id,
+          "brand_id": brand_id,
+          "template_id": template_id,
+          "user_intention": user_intention,
+          "user_input": user_input,
+          "sales_reply": strict_reply,
+          "template_key": template_key,
+          "insert_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        })
+        return {"status": 200, "msg": "Strict reply success", "strict_reply": strict_reply}
+    except Exception as e:
+        app_logger.error(f"Error in strict_reply: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
 # 模型回复模块
 @app.post("/model_reply")
 async def model_reply(request:Request):
@@ -110,23 +205,20 @@ async def model_reply(request:Request):
         template_id = data.get("template_id")
         user_input = data.get("user_input")
         history = get_dialogue_data(data)
-
-        if not industry_id or not template_id:
-            return {"status":400, "msg": "Missing required information"}
-
+        
         template_info = sales_template_db.find_one(
             {"industry_id": industry_id, "template_id": template_id}, sort=[('_id', -1)]
         )
 
-        if not template_info:
-            return {"status": 404, "msg": "Template not found"}
+        # if not template_info:
+        #     return {"status": 404, "msg": "Template not found"}
 
         template_content = template_info.get("template_content", "")        
- 
+
         if not template_content:
             app_logger.warning(f"Template content not found for chat_id: {data.get('chat_id')}, use default template content")
             template_content = "以一名有亲和力的，有耐心的销售人员身份来回答客户的问题。"
-        print(f"template_content: {template_content}")
+        # print(f"template_content: {template_content}")
         # 实现模型回复的逻辑
         model_reply, input_tokens, output_tokens = get_sales_reply(industry_id, template_content, user_input, history, model_name="gpt-4o-mini", temperature=0.1)
 
@@ -141,6 +233,35 @@ async def model_reply(request:Request):
 
     except Exception as e:
         app_logger.error(f"Error in model_reply: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
+    
+# 留资等级判断模块
+@app.post('/intention_level')
+async def intention_level(request:Request):
+    try:
+        data = await request.json()
+        chat_id = data.get("chat_id")
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
+        user_history = data.get("user_history")
+
+        intention_level_result = get_intention_level(user_history)
+        intention_level_db.insert_one(
+            {
+                "chat_id": chat_id,
+                "industry_id": industry_id,
+                "brand_id": brand_id,
+                "template_id": template_id,
+                "intention_level": intention_level_result['intention_level'],
+                "intention_level_clue": intention_level_result['intention_level_clue'],
+                "insert_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            }
+        )
+        return {"status": 200, "msg": "Intention level success", "intention_level_result": intention_level_result}
+
+    except Exception as e:
+        app_logger.error(f"Error in intention_level: {str(e)}")
         return {"status": 500, "msg": "Internal server error"}
 
 

@@ -117,7 +117,7 @@ async def slots_recognition(request:Request):
         data = await request.json()
         user_input = data.get("user_input")
         current_slots = data.get("current_slots")
-        print(f"current_slots: {current_slots}\ntype: {type(current_slots)}")
+        # print(f"current_slots: {current_slots}\ntype: {type(current_slots)}")
         chat_id = data.get("chat_id")
         industry_id = data.get("industry_id")
         brand_id = data.get("brand_id")
@@ -172,9 +172,26 @@ async def strict_reply(request:Request):
         global strict_reply_instance
         data = await request.json()
         user_input = data.get("user_input")
+        chat_id = data.get("chat_id")
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
         user_intention = strict_reply_instance.intention_match_llm(user_input)
+        user_intention = json.loads(user_intention).get("intention", "问好")
         print(f"user_intention: {user_intention}")
-        strict_reply = strict_reply_instance.get_sales_reply(user_intention, user_input)
+        strict_reply, template_key = strict_reply_instance.get_sales_reply(user_intention, user_input)
+        print(f"strict_reply: {strict_reply}")
+        user_dialogue_db.insert_one({
+          "chat_id": chat_id,
+          "industry_id": industry_id,
+          "brand_id": brand_id,
+          "template_id": template_id,
+          "user_intention": user_intention,
+          "user_input": user_input,
+          "sales_reply": strict_reply,
+          "template_key": template_key,
+          "insert_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        })
         return {"status": 200, "msg": "Strict reply success", "strict_reply": strict_reply}
     except Exception as e:
         app_logger.error(f"Error in strict_reply: {str(e)}")
@@ -201,7 +218,7 @@ async def model_reply(request:Request):
         if not template_content:
             app_logger.warning(f"Template content not found for chat_id: {data.get('chat_id')}, use default template content")
             template_content = "以一名有亲和力的，有耐心的销售人员身份来回答客户的问题。"
-        print(f"template_content: {template_content}")
+        # print(f"template_content: {template_content}")
         # 实现模型回复的逻辑
         model_reply, input_tokens, output_tokens = get_sales_reply(industry_id, template_content, user_input, history, model_name="gpt-4o-mini", temperature=0.1)
 

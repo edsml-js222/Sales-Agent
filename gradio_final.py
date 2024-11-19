@@ -128,7 +128,7 @@ def user_input_handler(user_input, history):
     global chat_history_saved
     global slotinfo_saved
     #model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
-    strict_reply = get_strict_reply(user_input, chat_id_saved)
+    strict_reply = get_strict_reply(user_input, chat_id_saved, industry_id_saved, brand_id_saved, template_id_saved)
     slots_recognition_res = slots_recognition(user_input, slotinfo_saved, chat_id_saved, industry_id_saved, brand_id_saved, template_id_saved)
     # 更新槽位信息
     slotinfo_saved = slots_recognition_res
@@ -137,11 +137,14 @@ def user_input_handler(user_input, history):
     return [history, ""]
 
 # 获取严格回复
-def get_strict_reply(user_input, chat_id):
+def get_strict_reply(user_input, chat_id, industry_id, brand_id, template_id):
     url = "http://localhost:30504/strict_reply"
     data = {
         "user_input": user_input,
-        "chat_id": chat_id
+        "chat_id": chat_id,
+        "industry_id": industry_id,
+        "brand_id": brand_id,
+        "template_id": template_id
     }
     try:
         response = requests.post(url, json=data)

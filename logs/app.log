@@ -10,3 +10,17 @@
 2024-10-28 16:54:55,685 - app_logger - ERROR - Error in slots_recognition: string indices must be integers, not 'str'
 2024-10-28 16:55:08,860 - app_logger - ERROR - Error in slots_recognition: string indices must be integers, not 'str'
 2024-10-30 10:58:33,512 - app_logger - ERROR - Error in model_reply: 'NoneType' object has no attribute 'get'
+2024-11-19 11:02:22,451 - app_logger - ERROR - Error in new_dialogue: GetSalesReplyStrict.__init__() missing 1 required positional argument: 'template_id'
+2024-11-19 11:02:26,113 - app_logger - ERROR - Error in strict_reply: 'NoneType' object has no attribute 'intention_match_llm'
+2024-11-19 11:07:11,261 - app_logger - ERROR - Error in new_dialogue: 'SetTemplate' object has no attribute 'template_intention'
+2024-11-19 11:07:14,859 - app_logger - ERROR - Error in strict_reply: 'NoneType' object has no attribute 'intention_match_llm'
+2024-11-19 11:11:34,044 - app_logger - ERROR - Error in strict_reply: '<generator object GetSalesReplyStrict.get_sales_reply.<locals>.<genexpr> at 0x7fc2e04bece0>'
+2024-11-19 11:18:30,064 - app_logger - ERROR - Error in strict_reply: '<generator object GetSalesReplyStrict.get_sales_reply.<locals>.<genexpr> at 0x7fe3fa7aab20>'
+2024-11-19 11:39:03,091 - app_logger - ERROR - Error in strict_reply: '{"intention": "问好"}'
+2024-11-19 11:40:15,606 - app_logger - ERROR - Error in strict_reply: '{"intention": "问好"}'
+2024-11-19 11:42:25,246 - app_logger - ERROR - Error in strict_reply: '{"intention": "问好"}'
+2024-11-19 13:56:37,691 - app_logger - ERROR - Error in strict_reply: 'GetSalesReplyStrict' object has no attribute 'faq_reply'
+2024-11-19 13:57:09,146 - app_logger - ERROR - Error in strict_reply: ''
+2024-11-19 14:14:18,410 - app_logger - ERROR - Error in strict_reply: name 'date' is not defined
+2024-11-19 14:17:24,654 - app_logger - ERROR - Error in slots_recognition: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2024-11-19 14:19:06,847 - app_logger - ERROR - Error in strict_reply: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))

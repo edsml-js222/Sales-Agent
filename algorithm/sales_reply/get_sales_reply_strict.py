@@ -1,3 +1,7 @@
+import os
+import sys
+root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root_path)
 from triton_inference.get_llm_res import get_llm_res
 from algorithm.sales_reply.set_template import SetTemplate
 
@@ -6,7 +10,7 @@ class GetSalesReplyStrict:
         self.template = SetTemplate(project_name, industry_id, brand_id, template_id)
         self.template_intention = self.template.sales_template_intention
         self.template_content = self.template.sales_template_content
-        self.template_up_limit = len(self.template_content) # 会话意图上限
+        self.template_up_limit = len(self.template_intention) # 会话意图上限
         self.dialogue_count = 0 # 会话轮次
         self.user_intention = [] # 用户意图
 
@@ -48,12 +52,14 @@ class GetSalesReplyStrict:
         # 如果当前轮次是第一个轮次，并且用户意图不是问好，则默认用户意图是问好
         if self.dialogue_count % self.template_up_limit == 1 and user_intention != "问好":
             self.user_intention.append("问好")
+            self.dialogue_count += 1
         self.user_intention.append(user_intention)
-        template_key = (''.join(str(self.template_intention[intention] for intention in self.user_intention[dialogue_circle * self.template_up_limit : self.dialogue_count])))
+        template_key = ''.join(str(self.template_intention[intention]) for intention in self.user_intention[dialogue_circle * self.template_up_limit : self.dialogue_count])
+        print(f"template_key: {template_key}")
         if user_intention == "询问项目":
             response = self.faq_reply(user_input)
 
         else:
             response = self.template_content[template_key]
         
-        return response
+        return response, template_key
