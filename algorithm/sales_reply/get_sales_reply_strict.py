@@ -1,5 +1,5 @@
 from triton_inference.get_llm_res import get_llm_res
-from set_template import SetTemplate
+from algorithm.sales_reply.set_template import SetTemplate
 
 class GetSalesReplyStrict:
     def __init__(self, project_name: str, industry_id: str, brand_id: str, template_id: str):
