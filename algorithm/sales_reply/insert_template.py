@@ -45,7 +45,8 @@ def run():
         "143": node_content_143,
         "1432": node_content_1432,
     }
-    db = _init_mongo_connect(project_name="smart_salesman")
+    project_name = "smart_salesman"
+    db = _init_mongo_connect(project_name)
     sales_template_db = db["sales_template_db"]
     sales_template = sales_template_db.insert_one(
         {"industry_id": industry_id, 

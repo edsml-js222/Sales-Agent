@@ -2,8 +2,8 @@ from triton_inference.get_llm_res import get_llm_res
 from set_template import SetTemplate
 
 class GetSalesReplyStrict:
-    def __init__(self, industry_id: str, brand_id: str, template_id: str):
-        self.template = SetTemplate(industry_id, brand_id, template_id)
+    def __init__(self, project_name: str, industry_id: str, brand_id: str, template_id: str):
+        self.template = SetTemplate(project_name, industry_id, brand_id, template_id)
         self.template_intention = self.template.template_intention
         self.template_content = self.template.template_content
         self.template_up_limit = len(self.template_content) # 会话意图上限
