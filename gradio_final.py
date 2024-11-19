@@ -78,10 +78,29 @@ def save_intention_level():
 # 绑定按钮点击事件
 def start_chat():
     global chat_id_saved
+    global industry_id_saved
+    global brand_id_saved
+    global template_id_saved
     global slotinfo_saved
     slotinfo_saved = SlotInfo().to_dict()
     chat_id_saved = generate_chat_id()
     print(f"当前对话chat_id: {chat_id_saved}")
+    url = "http://localhost:30504/new_dialogue"
+    data = {
+        "industry_id": industry_id_saved,
+        "brand_id": brand_id_saved,
+        "template_id": template_id_saved
+    }
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        res_status = response.json()['status']
+        if res_status == 200:
+            print("新建对话成功")
+        else:
+            print("新建对话失败")
+    except Exception as e:
+        print(f"请求失败{str(e)}")
     return [gr.update(visible=True, interactive=True), gr.update(visible=True), gr.update(visible=False)] # 显示对话框
 
 # 绑定结束对话按钮事件
@@ -108,14 +127,32 @@ def user_input_handler(user_input, history):
     global template_id_saved
     global chat_history_saved
     global slotinfo_saved
-    model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
+    #model_reply = get_model_reply(industry_id_saved, template_id_saved, user_input, chat_id_saved)
+    strict_reply = get_strict_reply(user_input, chat_id_saved)
     slots_recognition_res = slots_recognition(user_input, slotinfo_saved, chat_id_saved, industry_id_saved, brand_id_saved, template_id_saved)
     # 更新槽位信息
     slotinfo_saved = slots_recognition_res
-    history.append([user_input, model_reply])
+    history.append([user_input, strict_reply])
     chat_history_saved.append({"user": user_input})
     return [history, ""]
 
+# 获取严格回复
+def get_strict_reply(user_input, chat_id):
+    url = "http://localhost:30504/strict_reply"
+    data = {
+        "user_input": user_input,
+        "chat_id": chat_id
+    }
+    try:
+        response = requests.post(url, json=data)
+        response.raise_for_status()
+        data = response.json()
+        strict_reply = data.get("strict_reply", "")
+        print(data.get("msg", "No strict reply message"))
+        return strict_reply
+    except Exception as e:
+        print(f"请求失败{str(e)}")
+        return "当前有些繁忙哦，请稍等一会"
 # 获取模型回复
 def get_model_reply(industry_id, template_id, user_input, chat_id):
     url = "http://localhost:30504/model_reply"

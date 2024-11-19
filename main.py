@@ -31,6 +31,7 @@ sys.path.append(f"{current_dir}/utils")
 from utils.logger_config import setup_logger
 from utils.connect_mongo import _init_mongo_connect
 from algorithm.sales_reply.get_sales_reply import get_sales_reply
+from algorithm.sales_reply.get_sales_reply_strict import GetSalesReplyStrict
 from algorithm.slots_recognition.get_slots_recognition import extract_slot_info
 from algorithm.intention_level.get_intention_level import get_intention_level
 # import utils.MilvusDB as mdb
@@ -50,6 +51,8 @@ intention_level_db = db["intention_level_db"]
 # log_db = db["log_db"]
 # model_db = db["model_db"]
 
+# 严格回复实例
+strict_reply_instance = None
 
 # Create a logger for the application
 app_logger = setup_logger('app_logger', f"{current_dir}/logs/app.log")
@@ -147,8 +150,34 @@ async def slots_recognition(request:Request):
         app_logger.error(f"Error in slots_recognition: {str(e)}")
         return {"status": 500, "msg": "Internal server error"}
     
+# 新建对话
+@app.post("/new_dialogue")
+async def new_dialogue(request:Request):
+    try:
+        data = await request.json()
+        industry_id = data.get("industry_id")
+        brand_id = data.get("brand_id")
+        template_id = data.get("template_id")
+        global strict_reply_instance
+        strict_reply_instance = GetSalesReplyStrict(industry_id, brand_id, template_id)
+        return {"status": 200, "msg": "New dialogue success"}
+    except Exception as e:
+        app_logger.error(f"Error in new_dialogue: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
 
-
+# 严格回复模块
+@app.post("/strict_reply")
+async def strict_reply(request:Request):
+    try:
+        global strict_reply_instance
+        data = await request.json()
+        user_input = data.get("user_input")
+        user_intention = strict_reply_instance.intention_match_llm(user_input)
+        strict_reply = strict_reply_instance.get_sales_reply(user_intention, user_input)
+        return {"status": 200, "msg": "Strict reply success", "strict_reply": strict_reply}
+    except Exception as e:
+        app_logger.error(f"Error in strict_reply: {str(e)}")
+        return {"status": 500, "msg": "Internal server error"}
 # 模型回复模块
 @app.post("/model_reply")
 async def model_reply(request:Request):
