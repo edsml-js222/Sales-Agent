@@ -173,6 +173,7 @@ async def strict_reply(request:Request):
         data = await request.json()
         user_input = data.get("user_input")
         user_intention = strict_reply_instance.intention_match_llm(user_input)
+        print(f"user_intention: {user_intention}")
         strict_reply = strict_reply_instance.get_sales_reply(user_intention, user_input)
         return {"status": 200, "msg": "Strict reply success", "strict_reply": strict_reply}
     except Exception as e:
