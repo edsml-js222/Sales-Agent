@@ -12,9 +12,12 @@ from utils.MilvusDB import Milvus
 from utils.m3e_embedding import m3e_embedding
 
 def insert_faq(industry_id, brand_id, template_id, faq_content):
+    industry_dict = {"医美": "medical"}
+    brand_dict = {"美丽人生": "beauty"}
+    template_dict = {"美丽人生经典模版1": "classic_template1"}
     alias_name = "smart_salesman"
     milvus_instance = Milvus(alias_name)
-    collection_name = "_" + industry_id + "_" + brand_id + "_" + template_id
+    collection_name = industry_dict[industry_id] + "_" + brand_dict[brand_id] + "_" + template_id[template_id]
 
     faq_id = FieldSchema(name='faq_id', dtype=DataType.INT8, is_primary=True)
     faq_query = FieldSchema(name='faq_query', dtype=DataType.FLOAT_VECTOR, dim=768)

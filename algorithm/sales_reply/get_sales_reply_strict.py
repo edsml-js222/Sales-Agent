@@ -9,6 +9,9 @@ from utils.m3e_embedding import m3e_embedding
 
 class GetSalesReplyStrict:
     def __init__(self, project_name: str, industry_id: str, brand_id: str, template_id: str):
+        self.industry_dict = {"医美": "medical"}
+        self.brand_dict = {"美丽人生": "beauty"}
+        self.template_dict = {"美丽人生经典模版1": "classic_template1"}
         self.template = SetTemplate(project_name, industry_id, brand_id, template_id)
         self.template_intention = self.template.sales_template_intention
         self.template_content = self.template.sales_template_content
@@ -20,7 +23,7 @@ class GetSalesReplyStrict:
         self.template_id = template_id
         self.alias_name = project_name
         self.milvus_instance = Milvus(self.alias_name)
-        self.collection_name = "_" + industry_id + "_" + brand_id + "_" + template_id
+        self.collection_name = self.industry_dict[industry_id] + "_" + self.brand_dict[brand_id] + "_" + self.template_dict[template_id]
         self.collection_using = self.milvus_instance.link_collection(self.collection_name)
 
     def intention_match_llm(self, user_input: str, model_name: str = "Doubao-pro-128k", temperature: float = 0.1) -> str:
