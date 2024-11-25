@@ -20,7 +20,7 @@ class GetSalesReplyStrict:
         self.template_id = template_id
         self.alias_name = project_name
         self.milvus_instance = Milvus(self.alias_name)
-        self.collection_name = industry_id + "_" + brand_id + "_" + template_id
+        self.collection_name = "_" + industry_id + "_" + brand_id + "_" + template_id
         self.collection_using = self.milvus_instance.link_collection(self.collection_name)
 
     def intention_match_llm(self, user_input: str, model_name: str = "Doubao-pro-128k", temperature: float = 0.1) -> str:
