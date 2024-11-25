@@ -19,7 +19,7 @@ class SlotInfo:
             "confidence": self.confidence
         }
 
-def extract_slot_info(user_input: str, current_slots: dict, model_name="gpt-4o-mini", temperature=0.1) -> dict:
+def extract_slot_info(user_input: str, current_slots: dict, model_name="Doubao-pro-128k", temperature=0.1) -> dict:
     """
     使用llm分析文本并且提取槽位信息
     """

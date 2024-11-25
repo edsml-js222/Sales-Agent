@@ -23,7 +23,7 @@ class GetSalesReplyStrict:
         self.collection_name = industry_id + "_" + brand_id + "_" + template_id
         self.collection_using = self.milvus_instance.link_collection(self.collection_name)
 
-    def intention_match_llm(self, user_input: str, model_name: str = "gpt-4o-mini", temperature: float = 0.1) -> str:
+    def intention_match_llm(self, user_input: str, model_name: str = "Doubao-pro-128k", temperature: float = 0.1) -> str:
         """
         意图匹配
         """

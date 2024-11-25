@@ -1,7 +1,7 @@
 from triton_inference.get_llm_res import get_llm_res
 import json
 
-def get_intention_level(user_history, model_name="gpt-4o-mini", temperature=0.1) -> dict:
+def get_intention_level(user_history, model_name="Doubao-pro-128k", temperature=0.1) -> dict:
     prompt = f"""
     需要你根据用户跟智能客服沟通过程中的所有输入的文本内容，判断这个用户留下个人信息的意向等级为高或者低。如果用户输入的文本内容中有姓名和联系方式，则认为用户的意向等级为高，否则认为用户的意向等级为低。请你先思考你做出判断的原因，然后给出你的判断。
     用户输入的文本内容为：{user_history}
