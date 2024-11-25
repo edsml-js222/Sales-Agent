@@ -1,6 +1,7 @@
 import gradio as gr
 from utils.connect_mongo import _init_mongo_connect
 from algorithm.slots_recognition.get_slots_recognition import SlotInfo
+from algorithm.sales_reply.insert_faq import insert_faq
 import requests
 import random
 import string
@@ -236,16 +237,24 @@ def connect_database():
             "数据库连接成功",
             gr.update(visible=False),
             gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
+            gr.update(visible=False),
             gr.update(visible=False)
         ]
     except Exception as e:
         print(f"连接数据库失败: {str(e)}")
         return [
+            gr.update(visible=False), # hide industry_ids options
+            gr.update(visible=False), # hide template_ids options
+            gr.update(visible=False), # hide template_content display
+            "数据库连接失败",
             gr.update(visible=False),
             gr.update(visible=False),
             gr.update(visible=False),
             gr.update(visible=False),
-            "数据库连接失败"
+            gr.update(visible=False),
+            gr.update(visible=False)
         ]
         
 def update_brands_choices(industry_id):
@@ -319,13 +328,16 @@ def show_template_content(industry_id, brand_id, template_id):
 
 def show_new_template_input():
     return [
-        gr.update(visible=False),
-        gr.update(visible=False),
-        gr.update(visible=False),
-        gr.update(visible=False),
-        gr.update(visible=True, value=''),
-        gr.update(visible=True, value=''),
-        gr.update(visible=True)
+        gr.update(visible=False), # industry_dropdown
+        gr.update(visible=False), # brand_dropdown
+        gr.update(visible=False), # tempalte_dropdown
+        gr.update(visible=False), # template_content
+        gr.update(visible=True, value=''), # new_template_row
+        gr.update(visible=True, value=''), # new_template_content
+        gr.update(visible=False), # new_faq_row
+        gr.update(visible=False), # new_faq_content
+        gr.update(visible=True), # save_button
+        gr.update(visible=False) # save_faq_button
     ]
 
 def save_template_to_db(industry_id, brand_id, template_id, template_content):
@@ -358,6 +370,29 @@ def save_template_to_db(industry_id, brand_id, template_id, template_content):
         return "模版内容已成功存入数据库！"
     except Exception as e:
         return f"保存失败：{str(e)}"
+    
+def show_new_faq_content():
+    return [
+        gr.update(visible=False), # industry_dropdown
+        gr.update(visible=False), # brand_dropdown
+        gr.update(visible=False), # tempalte_dropdown
+        gr.update(visible=False), # template_content
+        gr.update(visible=False), # new_template_row
+        gr.update(visible=False), # new_template_content
+        gr.update(visible=True, value=''), # new_faq_row
+        gr.update(visible=True, value=''), # new_faq_content
+        gr.update(visible=False), # save_button 
+        gr.update(visible=True) # save_faq_button
+    ]
+
+def save_faq_to_db(industry_id, brand_id, template_id, faq_content, **kwargs):
+    try:
+        faq_res = insert_faq(industry_id, brand_id, template_id, faq_content)
+        return faq_res
+    except Exception as e:
+        return f"faq插入失败: {str(e)}"
+
+    pass
 # def update_or_create_template(industry_id, template_id, template_content):
 #     # 检查是否存在对应的记录
 #     existing_record = sales_template_db.find_one({'industry_id': industry_id, 'template_id': template_id})
@@ -391,6 +426,19 @@ def confirm_save(industry_id, brand_id, template_id, template_content, confirmed
 
     result = save_template_to_db(industry_id, brand_id, template_id, template_content)
     return [gr.update(visible=False), result]
+
+def save_faq_with_confirmation(industry_id, brand_id, template_id):
+    return [
+        gr.update(visible=True),
+        f"确认要保存FAQ知识到:\n行业id: {industry_id}\n品牌id: {brand_id}\n模版id: {template_id}吗？"
+    ]
+
+def confirm_faq_save(industry_id, brand_id, template_id, faq_content, confirmed):
+    if not confirmed:
+        return [gr.update(visible=False), '已取消保存']
+    result = save_faq_to_db(industry_id, brand_id, template_id, faq_content)
+    return [gr.update(visible=False), result]
+
 
 with gr.Blocks() as demo1:
     gr.Markdown("""
@@ -449,6 +497,7 @@ with gr.Blocks() as demo1:
                 with gr.Row():
                     connect_btn = gr.Button("🔗连接数据库", variant="primary")
                     new_template_btn = gr.Button("📝插入新话术模版")
+                    new_faq_btn = gr.Button("🙋插入新FAQ知识")
 
                 industry_dropdown = gr.Dropdown(choices=[], label="选择行业ID", allow_custom_value=True, value='', visible=False)
                 brands_dropdown = gr.Dropdown(choices=[], label="选择品牌ID", allow_custom_value=True, value='', visible=False)
@@ -458,21 +507,33 @@ with gr.Blocks() as demo1:
                     new_industry_input = gr.Textbox(label="行业ID输入", value='', scale=1)
                     new_brand_input = gr.Textbox(label="品牌ID输入", value='', scale=1)
                     new_template_input = gr.Textbox(label="模板ID输入", value='', scale=1)
-                    
+                with gr.Row(visible=False) as new_faq_row:
+                    new_faq_industry_input = gr.Textbox(label='行业ID输入', value='', scale=1)
+                    new_faq_brand_input = gr.Textbox(label='品牌ID输入', value='', scale=1)
+                    new_faq_template_input = gr.Textbox(label='模版ID输入', value='', scale=1)                    
                 new_template_content = gr.TextArea(label="模板内容输入", lines=5, visible=False)
+                new_faq_content = gr.TextArea(label='FAQ知识对输入', lines=5, placeholder="'query': 想问问瘦脸项目, 'answer': 我们的瘦脸项目有玻尿酸针", visible=False)
+                save_faq_btn = gr.Button("💾存入FAQ数据库", visible=False)
                 save_btn = gr.Button("💾存入数据库", visible=False)
-
+                
                 with gr.Group(visible=False) as confirm_box:
                     gr.Markdown("### 确认保存")
                     confirm_text = gr.Markdown("")
                     with gr.Row():
                         confirm_yes = gr.Button("确认")
                         confirm_no = gr.Button("取消")
+                with gr.Group(visible=False) as confirm_faq_box:
+                    gr.Markdown("### 确认保存")
+                    confirm_faq_text = gr.Markdown("")
+                    with gr.Row():
+                        confirm_faq_yes = gr.Button("确认")
+                        confirm_faq_no = gr.Button("取消")
+
                 
             with gr.Column(scale=2):
                 template_content = gr.TextArea(label="模版内容预览", interactive=False, visible=False, lines=10)
         # 事件绑定
-        connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, status_message, new_template_row, new_template_content, save_btn], queue=False)
+        connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, status_message, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
         
         industry_dropdown.change(fn=update_brands_choices, inputs=industry_dropdown, outputs=[brands_dropdown, template_dropdown, template_content, status_message], queue=False)
 
@@ -480,12 +541,19 @@ with gr.Blocks() as demo1:
 
         template_dropdown.change(fn=show_template_content, inputs=[industry_dropdown, brands_dropdown, template_dropdown], outputs=[template_content, status_message], queue=False)
 
-        new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, new_template_row, new_template_content, save_btn], queue=False)
+        new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
 
+        new_faq_btn.click(fn=show_new_faq_content, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
+        
         save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_brand_input, new_template_input], outputs=[confirm_box, confirm_text], queue=False)
 
         confirm_yes.click(fn=confirm_save, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
 
         confirm_no.click(fn=confirm_save, inputs=[new_industry_input, new_brand_input, new_template_input, new_template_content, gr.Textbox(value=False, visible=False)], outputs=[confirm_box, confirm_text], queue=False)
 
+        save_faq_btn.click(fn=save_faq_with_confirmation, inputs=[new_faq_industry_input, new_faq_brand_input, new_faq_template_input], outputs=[confirm_faq_box, confirm_faq_text], queue=False)
+
+        confirm_faq_yes.click(fn=confirm_faq_save, inputs=[new_faq_industry_input, new_faq_brand_input, new_faq_template_input, new_faq_content, gr.Textbox(value=True, visible=False)], outputs=[confirm_faq_box, confirm_faq_text], queue=False)
+        
+        confirm_faq_no.click(fn=confirm_faq_save, inputs=[new_faq_industry_input, new_faq_brand_input, new_faq_template_input, new_faq_content, gr.Textbox(value=False, visible=False)], outputs=[confirm_faq_box, confirm_faq_text], queue=False)
 demo1.launch(server_name="0.0.0.0", server_port=7880)
