@@ -12,7 +12,7 @@ class Milvus:
     def __init__(self,
                  alias_name = 'default',
                  threshold = 0.8,
-                 host = "localhost",
+                 host = "121.201.110.170",
                  port = "19530",
                  # user: str = "root",
                  # password: str = "Milvus2_2Milvus",
