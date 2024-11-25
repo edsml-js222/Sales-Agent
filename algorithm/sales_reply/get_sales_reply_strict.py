@@ -61,7 +61,7 @@ class GetSalesReplyStrict:
         """
         query_vector = m3e_embedding(user_input)
         search_res = self.milvus_instance.search(collection_using=self.collection_using, 
-                                                 query_vector=query_vector, top_k=3, 
+                                                 query=query_vector, topk=3, 
                                                  anns_field="faq_query", 
                                                  output_fields=["faq_answer"]
                                                  )

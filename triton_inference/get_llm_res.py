@@ -10,7 +10,7 @@ def get_llm_res(message, model_name, temperature=0.1, api_key='4d38043f29355bc7e
         "qwen1.5-1.8b-chat": "阿里千问",
         "qwen-turbo": "阿里千问",
         "hunyuan-lite": "腾讯混元",
-        "ep-20240711084128-2tpgm": "字节豆包",
+        "Doubao-pro-128k": "字节豆包",
         "ep-20240711083920-lsxn9": "字节豆包",
         "generalv3.5": "科大讯飞星火",
         "glm-4": "智谱AI",

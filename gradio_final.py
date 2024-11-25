@@ -234,6 +234,7 @@ def connect_database():
             gr.update(visible=True, choices=industry_ids, allow_custom_value=True, value=''), # show industry_ids options
             gr.update(visible=False), # hide template_ids options
             gr.update(visible=False), # hide template_content display
+            gr.update(visible=False), # hide faq_content
             "数据库连接成功",
             gr.update(visible=False),
             gr.update(visible=False),
@@ -278,6 +279,7 @@ def update_brands_choices(industry_id):
         gr.update(visible=True, choices=brand_ids, allow_custom_value=True, value=''), # show brand_ids options
         gr.update(visible=False), # hide template_ids options
         gr.update(visible=False), # hide template_content display
+        gr.update(visible=False),
         f"已找到{len(brand_ids)}个品牌"
     ]
 
@@ -285,6 +287,7 @@ def update_template_choices(industry_id, brand_id):
     """update template_ids options according to industry_id and brand_id"""
     if not brand_id:
         return [
+            gr.update(visible=False),
             gr.update(visible=False),
             gr.update(visible=False),
             "请先选择品牌id"
@@ -301,6 +304,7 @@ def update_template_choices(industry_id, brand_id):
     return [
         gr.update(visible=True, choices=template_ids, allow_custom_value=True, value=''), # show template_ids options
         gr.update(visible=False), # hide template_content display
+        gr.update(visible=False), # hide the faq_content
         f"已找到{len(template_ids)}个模板"
     ]
 
@@ -316,13 +320,18 @@ def show_template_content(industry_id, brand_id, template_id):
 
     db = _init_mongo_connect(database_name=database_name)
     sales_template_db = db['sales_template_db']
+    faq_content_db = db['faq_template_db']
     template_content = sales_template_db.find_one(
         {'industry_id': industry_id, 'brand_id': brand_id, 'template_id': template_id}
     )
-    if template_content and 'template_content' in template_content:
+    faq_content = faq_content_db.find_one(
+      {"industry_id": industry_id, "brand_id": brand_id, "template_id": template_id}
+    )
+    if template_content and 'template_content' in template_content and faq_content and "faq_content" in faq_content:
         return [
             gr.update(visible=True, value=template_content['template_content']), # show template_content
-            "话术模版加载成功"
+            gr.update(visible=True, value=faq_content['faq_content']),
+          "话术模版加载成功"
         ]
     return [gr.update(visible=False), "没有找到对应的话术模版"]
 
@@ -332,6 +341,7 @@ def show_new_template_input():
         gr.update(visible=False), # brand_dropdown
         gr.update(visible=False), # tempalte_dropdown
         gr.update(visible=False), # template_content
+        gr.update(visible=False),
         gr.update(visible=True, value=''), # new_template_row
         gr.update(visible=True, value=''), # new_template_content
         gr.update(visible=False), # new_faq_row
@@ -377,6 +387,7 @@ def show_new_faq_content():
         gr.update(visible=False), # brand_dropdown
         gr.update(visible=False), # tempalte_dropdown
         gr.update(visible=False), # template_content
+        gr.update(visible=False),
         gr.update(visible=False), # new_template_row
         gr.update(visible=False), # new_template_content
         gr.update(visible=True, value=''), # new_faq_row
@@ -388,9 +399,33 @@ def show_new_faq_content():
 def save_faq_to_db(industry_id, brand_id, template_id, faq_content, **kwargs):
     try:
         faq_res = insert_faq(industry_id, brand_id, template_id, faq_content)
-        return faq_res
+        print(faq_res)
+        db = _init_mongo_connect(database_name=database_name)
+        faq_template_db = db['faq_template_db']
+        
+        # check if there is any same record
+        existing = faq_template_db.find_one({
+          "industry_id": industry_id,
+          "brand_id": brand_id,
+          "template_id": template_id
+        })
+        # update existing record
+        if existing:
+          faq_template_db.update_one(
+          {"industry_id": industry_id, "brand_id": brand_id, "template_id": template_id},
+          {"$set": {"faq_content": faq_content}}
+          )
+          return "FAQ has been updated!"
+        # insert new record
+        faq_template_db.insert_one({
+          'industry_id': industry_id,
+          "brand_id": brand_id,
+          "template_id": template_id,
+          "faq_content": faq_content
+        })
+        return "New FAQ has been inserted!"
     except Exception as e:
-        return f"faq插入失败: {str(e)}"
+        print(f"faq插入失败: {str(e)}")
 
     pass
 # def update_or_create_template(industry_id, template_id, template_content):
@@ -532,18 +567,19 @@ with gr.Blocks() as demo1:
                 
             with gr.Column(scale=2):
                 template_content = gr.TextArea(label="模版内容预览", interactive=False, visible=False, lines=10)
+                faq_content_display = gr.TextArea(label="FAQ内容预览", interactive=False, visible=False, lines=10)  # New TextArea for FAQ content
         # 事件绑定
-        connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, status_message, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
+        connect_btn.click(fn=connect_database, inputs=None, outputs=[industry_dropdown, template_dropdown, template_content, faq_content_display, status_message, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
         
-        industry_dropdown.change(fn=update_brands_choices, inputs=industry_dropdown, outputs=[brands_dropdown, template_dropdown, template_content, status_message], queue=False)
+        industry_dropdown.change(fn=update_brands_choices, inputs=industry_dropdown, outputs=[brands_dropdown, template_dropdown, template_content, faq_content_display, status_message], queue=False)
 
-        brands_dropdown.change(fn=update_template_choices, inputs=[industry_dropdown, brands_dropdown], outputs=[template_dropdown, template_content, status_message], queue=False)
+        brands_dropdown.change(fn=update_template_choices, inputs=[industry_dropdown, brands_dropdown], outputs=[template_dropdown, template_content, faq_content_display, status_message], queue=False)
 
-        template_dropdown.change(fn=show_template_content, inputs=[industry_dropdown, brands_dropdown, template_dropdown], outputs=[template_content, status_message], queue=False)
+        template_dropdown.change(fn=show_template_content, inputs=[industry_dropdown, brands_dropdown, template_dropdown], outputs=[template_content, faq_content_display, status_message], queue=False)
 
-        new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
+        new_template_btn.click(fn=show_new_template_input, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, faq_content_display, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
 
-        new_faq_btn.click(fn=show_new_faq_content, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
+        new_faq_btn.click(fn=show_new_faq_content, inputs=None, outputs=[industry_dropdown, brands_dropdown, template_dropdown, template_content, faq_content_display, new_template_row, new_template_content, new_faq_row, new_faq_content, save_btn, save_faq_btn], queue=False)
         
         save_btn.click(fn=save_with_confirmation, inputs=[new_industry_input, new_brand_input, new_template_input], outputs=[confirm_box, confirm_text], queue=False)
 
