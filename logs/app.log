@@ -39,3 +39,5 @@
 2024-11-25 17:46:15,439 - app_logger - ERROR - Error in slots_recognition: 'Doubao-pro-128k'
 2024-11-25 17:51:37,425 - app_logger - ERROR - Error in strict_reply: Milvus.search() got an unexpected keyword argument 'query_vector'
 2024-11-25 17:53:54,947 - app_logger - ERROR - Error in strict_reply: Milvus.search() got an unexpected keyword argument 'top_k'
+2024-11-26 15:12:35,584 - app_logger - ERROR - Error in strict_reply: ''
+2024-11-26 16:55:24,761 - app_logger - ERROR - Error in strict_reply: ''

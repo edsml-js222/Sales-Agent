@@ -73,7 +73,7 @@ class GetSalesReplyStrict:
         获取销售回复
         """
         self.dialogue_count += 1
-        dialogue_circle = self.dialogue_count // self.template_up_limit
+        dialogue_circle = (self.dialogue_count - 1) // self.template_up_limit
         # 如果当前轮次是第一个轮次，并且用户意图不是问好，则默认用户意图是问好
         if self.dialogue_count % self.template_up_limit == 1 and user_intention != "问好":
             self.user_intention.append("问好")
