@@ -485,7 +485,8 @@ with gr.Blocks() as demo1:
     # dropdown.change(model_select, dropdown)
     
     with gr.Tab("🧑‍💼AI销售助手"):
-        init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
+        # init_mess = init_mess_store[random.randint(0, len(init_mess_store)-1)]
+        init_mess = "您好，这里是深圳艺星医疗整形医院。请问您之前有打过瘦脸针吗？"
         initial_message = [[None, init_mess]]
         chatbot = gr.Chatbot(value=initial_message, height=600)
 
