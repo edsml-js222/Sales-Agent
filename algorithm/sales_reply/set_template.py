@@ -8,10 +8,16 @@ from utils.connect_mongo import _init_mongo_connect
 class SetTemplate:
     def __init__(self, project_name: str, industry_id: str, brand_id: str, template_id: str):
         self.db = _init_mongo_connect(project_name)
-        self.sales_template_db = self.db["sales_template_db"]
-        self.sales_template = self.sales_template_db.find_one({"industry_id": industry_id, "brand_id": brand_id, "template_id": template_id})
-        self.sales_template_intention = self.sales_template['template_intention']
-        self.sales_template_content = self.sales_template['template_content']
+        # 基于有向图
+        self.reply_nodes_graph_db = self.db['reply_nodes_graph_db']
+        self.reply_nodes_graph_data = self.reply_nodes_graph_db.find_one({"industry_id": industry_id, "brand_id": brand_id, "template_id": template_id})
+        self.reply_nodes_graph = self.reply_nodes_graph_data['reply_nodes_graph']
+
+        # 初始实现方式 -- 基于树
+        # self.sales_template_db = self.db["sales_template_db"]
+        # self.sales_template = self.sales_template_db.find_one({"industry_id": industry_id, "brand_id": brand_id, "template_id": template_id})
+        # self.sales_template_intention = self.sales_template['template_intention']
+        # self.sales_template_content = self.sales_template['template_content']
         # self.template_intention = {"问好": 1, "询问项目": 2, "提供个人有效信息": 3, "结束对话": 4}
 
         # node_content_1 = '1'
