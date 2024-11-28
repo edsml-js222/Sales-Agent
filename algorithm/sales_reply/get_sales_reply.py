@@ -8,7 +8,7 @@ def system_prompt_dict(industry_id):
     return system_prompt
 
 
-def get_sales_reply(industry_id, template_content, user_input, history, model_name="gpt-4o-mini", temperature=0.1):
+def get_sales_reply(industry_id, template_content, user_input, history, model_name="Doubao-pro-128k", temperature=0.1):
     prompt = f"""
     <销售话术模版> {template_content} </销售话术模版>
     <客户咨询>: {user_input} </客户咨询>

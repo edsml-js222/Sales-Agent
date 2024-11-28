@@ -24,3 +24,20 @@
 2024-11-19 14:14:18,410 - app_logger - ERROR - Error in strict_reply: name 'date' is not defined
 2024-11-19 14:17:24,654 - app_logger - ERROR - Error in slots_recognition: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
 2024-11-19 14:19:06,847 - app_logger - ERROR - Error in strict_reply: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2024-11-25 16:04:32,039 - app_logger - ERROR - Error in new_dialogue: <MilvusException: (code=2, message=Fail connecting to server on localhost:19530, illegal connection params or server unavailable)>
+2024-11-25 16:08:31,155 - app_logger - ERROR - Error in new_dialogue: <MilvusException: (code=1100, message=Invalid collection name: 医美_美丽人生_美丽人生经典模版1. the first character of a collection name must be an underscore or letter: invalid parameter)>
+2024-11-25 16:08:38,099 - app_logger - ERROR - Error in strict_reply: 'NoneType' object has no attribute 'intention_match_llm'
+2024-11-25 16:08:38,104 - app_logger - ERROR - Error in slots_recognition: 'Doubao-pro-128k'
+2024-11-25 16:13:11,620 - app_logger - ERROR - Error in new_dialogue: <MilvusException: (code=1100, message=Invalid collection name: 医美_美丽人生_美丽人生经典模版1. the first character of a collection name must be an underscore or letter: invalid parameter)>
+2024-11-25 16:16:55,734 - app_logger - ERROR - Error in new_dialogue: <MilvusException: (code=1100, message=Invalid collection name: _医美_美丽人生_美丽人生经典模版1. collection name can only contain numbers, letters and underscores: invalid parameter)>
+2024-11-25 16:31:01,504 - app_logger - ERROR - Error in intention_level: 'Doubao-pro-128k'
+2024-11-25 16:41:51,248 - app_logger - ERROR - Error in new_dialogue: <SchemaNotReadyException: (code=1, message=Collection 'medical_beauty_classic_template1' not exist, or you can pass in schema to create one.)>
+2024-11-25 16:44:23,153 - app_logger - ERROR - Error in intention_level: 'Doubao-pro-128k'
+2024-11-25 16:44:34,074 - app_logger - ERROR - Error in new_dialogue: <MilvusException: (code=2, message=Fail connecting to server on 121.201.110.170:19530, illegal connection params or server unavailable)>
+2024-11-25 17:01:04,592 - app_logger - ERROR - Error in new_dialogue: <SchemaNotReadyException: (code=1, message=Collection 'medical_beauty_classic_template1' not exist, or you can pass in schema to create one.)>
+2024-11-25 17:46:15,433 - app_logger - ERROR - Error in strict_reply: 'Doubao-pro-128k'
+2024-11-25 17:46:15,439 - app_logger - ERROR - Error in slots_recognition: 'Doubao-pro-128k'
+2024-11-25 17:51:37,425 - app_logger - ERROR - Error in strict_reply: Milvus.search() got an unexpected keyword argument 'query_vector'
+2024-11-25 17:53:54,947 - app_logger - ERROR - Error in strict_reply: Milvus.search() got an unexpected keyword argument 'top_k'
+2024-11-26 15:12:35,584 - app_logger - ERROR - Error in strict_reply: ''
+2024-11-26 16:55:24,761 - app_logger - ERROR - Error in strict_reply: ''

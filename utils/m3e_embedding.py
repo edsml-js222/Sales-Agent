@@ -9,5 +9,5 @@ def m3e_embedding(text: str):
     }
     url = "http://121.201.110.83:30304/v1/embedding"
     response = requests.post(url, json=data)
-    emb_res = np.array(response.json()['emb'])
+    emb_res = np.array(response.json()['emb'][0], dtype=np.float32).tolist()
     return emb_res
