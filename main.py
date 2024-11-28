@@ -176,9 +176,10 @@ async def strict_reply(request:Request):
         industry_id = data.get("industry_id")
         brand_id = data.get("brand_id")
         template_id = data.get("template_id")
-        user_intention = strict_reply_instance.intention_match_llm(user_input)
+        user_intention, intention_list = strict_reply_instance.intention_match_llm(user_input)
         user_intention = json.loads(user_intention).get("intention", "未匹配意图")
         print(f"user_intention: {user_intention}")
+        print(f"latest_state_intention_list: {intention_list}")
         strict_reply, template_key = strict_reply_instance.get_sales_reply(user_intention, user_input)
         print(f"strict_reply: {strict_reply}")
         user_dialogue_db.insert_one({

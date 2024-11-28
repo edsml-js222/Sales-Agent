@@ -75,7 +75,6 @@ class GetSalesReplyStrict:
         intention_list.append("询问项目")
         prompt = f"""
         你需要根据用户输入的内容，判断用户的这个输入属于哪一个意图，请从以下列表中选择一个最合适的意图：{intention_list}
-        如果上述列表中有'all'出现，则直接返回{{"intention:" "all"}}
         用户输入的内容为：{user_input}
         请以json格式输出，例如{{"intention": ""}}。
         你可以参考的示例为：
@@ -93,13 +92,14 @@ class GetSalesReplyStrict:
 
             用户输入：我不想回答你这个问题
             你的返回：{{"intention": "拒绝"}}
+        如果{intention_list}列表中有'all'出现，则直接返回{{"intention:" "all"}}
         你的返回是：
         """
         message = [
             {"role": "system", "content": "你是一名意图识别的专家，擅长从用户的输入中判断用户当前的意图"},
             {"role": "user", "content": prompt}]
-        model_reply, input_tokens, output_tokens = get_llm_res(message, model_name, temperature=temperature)
-        return model_reply
+        user_intention, input_tokens, output_tokens = get_llm_res(message, model_name, temperature=temperature)
+        return user_intention, intention_list
     
     def faq_reply(self, user_input: str) -> str:
         """
